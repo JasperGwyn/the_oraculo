@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 174 213 208;
+    --foreground: 51 65 85;
+    
+    --card: 255 255 255;
+    --card-foreground: 51 65 85;
+    
+    --border: 255 255 255;
+    --input: 255 255 255;
+    
+    --primary: 255 255 255;
+    --primary-foreground: 51 65 85;
+    
+    --secondary: 241 91 181;
+    --secondary-foreground: 255 255 255;
+    
+    --accent: 0 245 212;
+    --accent-foreground: 255 255 255;
+    
+    --destructive: 255 255 255;
+    --destructive-foreground: 51 65 85;
+    
+    --ring: 255 255 255;
+    
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-fredoka);
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
