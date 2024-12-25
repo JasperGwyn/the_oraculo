@@ -1,7 +1,8 @@
-import { useAccount, useReadContract, useWriteContract, useSimulateContract } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { Round, Team } from '../types/contracts'
 import { parseEther } from 'viem'
+import { modeNetwork } from '@/config/chains'
 
 export function useRoundManager() {
   const { address } = useAccount()
@@ -15,9 +16,6 @@ export function useRoundManager() {
     args: [BigInt(1)],
   })
 
-  const { writeContract: placeBet, isPending: isPlacingBet } = useWriteContract()
-  const { writeContract: claimRewards, isPending: isClaimingRewards } = useWriteContract()
-
   // Calculate rewards
   const { data: reward, isPending: isLoadingReward } = useReadContract({
     address: contractAddress,
@@ -29,41 +27,92 @@ export function useRoundManager() {
     }
   })
 
+  // Setup contract write hooks
+  const { writeContract, isPending: isPlacingBet, data: hash } = useWriteContract()
+
+  // Watch for transaction receipt
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
   const submitBet = async (team: Team, amount: string) => {
     if (!address) throw new Error('Wallet not connected')
 
-    // Simulate the bet with actual parameters
-    const { data: simulateBet } = await useSimulateContract.simulate({
+    console.log('Attempting to place bet with params:', {
       address: contractAddress,
-      abi: RoundManagerABI,
-      functionName: 'placeBet',
-      args: [BigInt(1), team],
-      value: parseEther(amount),
+      team,
+      amount,
+      roundId: 1,
+      chain: modeNetwork.name,
+      userAddress: address
     })
 
-    if (!simulateBet?.request) {
-      throw new Error('Failed to simulate bet. Please try again.')
-    }
+    try {
+      await writeContract({
+        abi: RoundManagerABI,
+        address: contractAddress,
+        functionName: 'placeBet',
+        args: [BigInt(1), team],
+        value: parseEther(amount),
+        chain: modeNetwork,
+        account: address,
+      })
 
-    return placeBet(simulateBet.request)
+      // Return the hash from the hook's data
+      if (!hash) {
+        console.log('No transaction hash available yet')
+      }
+      return hash
+
+    } catch (error) {
+      console.error('Error in submitBet:', {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        params: {
+          address: contractAddress,
+          team,
+          amount,
+          roundId: 1,
+          chain: modeNetwork.name
+        }
+      })
+      throw error
+    }
   }
 
   const claim = async () => {
     if (!address) throw new Error('Wallet not connected')
 
-    // Simulate the claim with actual parameters
-    const { data: simulateClaim } = await useSimulateContract.simulate({
+    console.log('Attempting to claim rewards:', {
       address: contractAddress,
-      abi: RoundManagerABI,
-      functionName: 'claimRewards',
-      args: [BigInt(1)],
+      roundId: 1,
+      userAddress: address,
+      chain: modeNetwork.name
     })
 
-    if (!simulateClaim?.request) {
-      throw new Error('Failed to simulate claim. Please try again.')
-    }
+    try {
+      await writeContract({
+        abi: RoundManagerABI,
+        address: contractAddress,
+        functionName: 'claimRewards',
+        args: [BigInt(1)],
+        chain: modeNetwork,
+        account: address,
+      })
 
-    return claimRewards(simulateClaim.request)
+      // Return the hash from the hook's data
+      if (!hash) {
+        console.log('No transaction hash available yet')
+      }
+      return hash
+
+    } catch (error) {
+      console.error('Error in claim:', {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      })
+      throw error
+    }
   }
 
   const formatRound = (data: typeof currentRound): Round | undefined => {
@@ -87,8 +136,11 @@ export function useRoundManager() {
     submitBet,
     isPlacingBet,
     claim,
-    isClaimingRewards,
+    isClaimingRewards: false,
     reward,
     isLoadingReward,
+    hash,
+    isConfirming,
+    isConfirmed
   }
 }

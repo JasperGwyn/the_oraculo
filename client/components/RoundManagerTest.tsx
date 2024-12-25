@@ -6,6 +6,30 @@ import { Team } from '@/lib/types/contracts'
 import { useState } from 'react'
 import { formatEther } from 'viem'
 
+// Helper function to convert BigInts to strings in an object
+const convertBigIntsToString = (obj: any): any => {
+  if (obj === null) return null
+  if (typeof obj !== 'object') {
+    return typeof obj === 'bigint' ? obj.toString() : obj
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertBigIntsToString(item))
+  }
+
+  const converted: any = {}
+  for (const key in obj) {
+    if (typeof obj[key] === 'bigint') {
+      converted[key] = obj[key].toString()
+    } else if (typeof obj[key] === 'object') {
+      converted[key] = convertBigIntsToString(obj[key])
+    } else {
+      converted[key] = obj[key]
+    }
+  }
+  return converted
+}
+
 export function RoundManagerTest() {
   const { address } = useAccount()
   const {
@@ -14,158 +38,167 @@ export function RoundManagerTest() {
     submitBet,
     isPlacingBet,
     reward,
-    isLoadingReward
+    isLoadingReward,
+    hash,
+    isConfirming,
+    isConfirmed
   } = useRoundManager()
 
   const [betAmount, setBetAmount] = useState('0.01')
   const [error, setError] = useState<string>()
+  const [logs, setLogs] = useState<string[]>([])
+
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    console.log(`[${timestamp}] ${message}`)
+    setLogs(prev => [...prev, `[${timestamp}] ${message}`])
+  }
 
   if (isLoadingRound) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-red-600 p-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
-        </div>
-      </div>
-    )
+    return <div className="p-4 text-black">Loading round data...</div>
   }
 
   const handleBet = async (team: Team) => {
     try {
       setError(undefined)
-      await submitBet(team, betAmount)
+      addLog(`Attempting to place bet: ${betAmount} ETH on team ${team}`)
+      addLog(`Contract params: roundId=1, team=${team}, amount=${betAmount} ETH`)
+
+      const tx = await submitBet(team, betAmount)
+      addLog(`Transaction submitted with hash: ${tx}`)
+      addLog('Waiting for confirmation...')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place bet')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to place bet'
+      const errorDetails = err instanceof Error ? err.stack : JSON.stringify(err)
+      setError(`${errorMessage}\n\nDetails:\n${errorDetails}`)
+      addLog(`Error: ${errorMessage}`)
+      console.error('Detailed error:', err)
     }
   }
 
+  // Effect to track transaction status
+  if (hash && isConfirming) {
+    addLog(`Transaction ${hash} is being confirmed...`)
+  }
+  if (hash && isConfirmed) {
+    addLog(`Transaction ${hash} has been confirmed!`)
+  }
+
+  const roundData = currentRound ? {
+    id: currentRound.id.toString(),
+    status: currentRound.status,
+    totalStaked: `${formatEther(currentRound.totalStaked)} ETH`,
+    endTime: new Date(Number(currentRound.endTime) * 1000).toLocaleString(),
+    rawData: convertBigIntsToString(currentRound)
+  } : null
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-500 to-red-600 p-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl">
-          <h2 className="text-3xl font-bold mb-8 text-white">Round Manager</h2>
+    <div className="p-4 max-w-4xl mx-auto text-black">
+      <h2 className="text-2xl font-bold mb-4">Contract Test Interface</h2>
 
-          <div className="space-y-8">
-            {/* Wallet Status */}
-            <div className="bg-white/5 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white">Wallet Status</h3>
-              {address ? (
-                <div className="bg-green-500/20 text-green-100 px-4 py-3 rounded-xl">
-                  <p className="font-mono text-sm break-all">Connected: {address}</p>
-                </div>
-              ) : (
-                <div className="bg-red-500/20 text-red-100 px-4 py-3 rounded-xl">
-                  <p>Not connected</p>
-                </div>
-              )}
-            </div>
+      {/* Wallet Status */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Wallet Status</h3>
+        {address ? (
+          <div className="font-mono text-sm">Connected: {address}</div>
+        ) : (
+          <div className="text-red-600">Not connected</div>
+        )}
+      </div>
 
-            {/* Current Round */}
-            <div className="bg-white/5 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white">Current Round</h3>
-              {currentRound ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 rounded-xl p-4">
-                    <p className="text-white/60 text-sm">Round ID</p>
-                    <p className="text-white text-lg font-semibold">{currentRound.id.toString()}</p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4">
-                    <p className="text-white/60 text-sm">Status</p>
-                    <p className="text-white text-lg font-semibold">{currentRound.status}</p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4">
-                    <p className="text-white/60 text-sm">Total Staked</p>
-                    <p className="text-white text-lg font-semibold">
-                      {formatEther(currentRound.totalStaked)} ETH
-                    </p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4">
-                    <p className="text-white/60 text-sm">End Time</p>
-                    <p className="text-white text-lg font-semibold">
-                      {new Date(Number(currentRound.endTime) * 1000).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-white/60">No round data available</p>
-              )}
-            </div>
+      {/* Current Round */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Current Round Data</h3>
+        {roundData ? (
+          <pre className="whitespace-pre-wrap font-mono text-sm">
+            {JSON.stringify(roundData, null, 2)}
+          </pre>
+        ) : (
+          <div>No round data available</div>
+        )}
+      </div>
 
-            {/* Rewards */}
-            <div className="bg-white/5 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white">Your Rewards</h3>
-              {isLoadingReward ? (
-                <div className="animate-pulse bg-white/10 h-10 rounded-xl"></div>
-              ) : (
-                <div className="bg-white/10 rounded-xl p-4">
-                  <p className="text-white text-lg">
-                    {reward ? `${formatEther(reward)} ETH` : 'No rewards'}
-                  </p>
-                </div>
-              )}
-            </div>
+      {/* Rewards */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Your Rewards</h3>
+        {isLoadingReward ? (
+          <div>Loading rewards...</div>
+        ) : (
+          <div className="font-mono">
+            {reward ? `${formatEther(reward)} ETH` : 'No rewards'}
+          </div>
+        )}
+      </div>
 
-            {/* Place Bet */}
-            <div className="bg-white/5 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white">Place Bet</h3>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="betAmount" className="block text-sm font-medium text-white/80 mb-2">
-                    Amount (ETH)
-                  </label>
-                  <input
-                    type="number"
-                    id="betAmount"
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(e.target.value)}
-                    step="0.001"
-                    min="0.001"
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
-                </div>
+      {/* Place Bet */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Place Bet</h3>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="betAmount" className="block mb-1">Amount (ETH)</label>
+            <input
+              type="number"
+              id="betAmount"
+              value={betAmount}
+              onChange={(e) => setBetAmount(e.target.value)}
+              step="0.001"
+              min="0.001"
+              className="border p-2 rounded w-48 text-black"
+            />
+          </div>
 
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleBet(Team.Yes)}
-                    disabled={isPlacingBet || !address}
-                    className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:hover:bg-green-500 text-white font-semibold px-6 py-4 rounded-xl transition-colors"
-                  >
-                    {isPlacingBet ? (
-                      <span className="flex items-center justify-center">
-                        <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
-                        Placing Bet...
-                      </span>
-                    ) : (
-                      `Bet ${betAmount} ETH on YES`
-                    )}
-                  </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => handleBet(Team.Yes)}
+              disabled={isPlacingBet || !address}
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            >
+              {isPlacingBet ? 'Placing Bet...' : `Bet on YES`}
+            </button>
 
-                  <button
-                    onClick={() => handleBet(Team.No)}
-                    disabled={isPlacingBet || !address}
-                    className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:hover:bg-red-500 text-white font-semibold px-6 py-4 rounded-xl transition-colors"
-                  >
-                    {isPlacingBet ? (
-                      <span className="flex items-center justify-center">
-                        <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
-                        Placing Bet...
-                      </span>
-                    ) : (
-                      `Bet ${betAmount} ETH on NO`
-                    )}
-                  </button>
-                </div>
-
-                {error && (
-                  <div className="bg-red-500/20 border border-red-500/40 text-red-100 px-4 py-3 rounded-xl mt-4">
-                    {error}
-                  </div>
-                )}
-              </div>
-            </div>
+            <button
+              onClick={() => handleBet(Team.No)}
+              disabled={isPlacingBet || !address}
+              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            >
+              {isPlacingBet ? 'Placing Bet...' : `Bet on NO`}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Transaction Status */}
+      {hash && (
+        <div className="mb-6 p-4 bg-gray-100 rounded">
+          <h3 className="font-bold mb-2">Transaction Status</h3>
+          <div className="font-mono text-sm">
+            <div>Transaction Hash: {hash}</div>
+            <div>Status: {isConfirming ? 'Confirming...' : isConfirmed ? 'Confirmed!' : 'Pending'}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Logs */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Transaction Logs</h3>
+        <div className="font-mono text-sm bg-black text-green-400 p-4 rounded max-h-60 overflow-y-auto">
+          {logs.length === 0 ? (
+            <div className="text-gray-500">No transactions yet</div>
+          ) : (
+            logs.map((log, index) => (
+              <div key={index}>{log}</div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <h3 className="font-bold mb-2">Error</h3>
+          <pre className="whitespace-pre-wrap font-mono text-sm overflow-x-auto">{error}</pre>
+        </div>
+      )}
     </div>
   )
 }
