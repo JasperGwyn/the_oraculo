@@ -1,89 +1,49 @@
 {
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-2VILTRL5.js -> ./components/embed/v3/crypto/utils/handleEvmTransaction.js": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-2VILTRL5.js -> ./components/embed/v3/crypto/utils/handleEvmTransaction.js",
+  "../node_modules/@reown/appkit/dist/esm/src/client.js -> @reown/appkit-scaffold-ui/w3m-modal": {
+    "id": "../node_modules/@reown/appkit/dist/esm/src/client.js -> @reown/appkit-scaffold-ui/w3m-modal",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_reown_appkit-scaffold-ui_dist_esm_exports_w3m-modal_js.js"
+    ]
+  },
+  "../node_modules/@reown/appkit/dist/esm/src/client.js -> @reown/appkit-ui": {
+    "id": "../node_modules/@reown/appkit/dist/esm/src/client.js -> @reown/appkit-ui",
     "files": []
   },
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-2VILTRL5.js -> ./components/embed/v3/crypto/utils/handleSolanaTransaction.js": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-2VILTRL5.js -> ./components/embed/v3/crypto/utils/handleSolanaTransaction.js",
+  "../node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js -> @coinbase/wallet-sdk": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js -> @coinbase/wallet-sdk",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_coinbase_wallet-sdk_dist_index_js.js"
+    ]
+  },
+  "../node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js -> cbw-sdk": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js -> cbw-sdk",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_cbw-sdk_dist_index_js.js"
+    ]
+  },
+  "../node_modules/@wagmi/connectors/dist/esm/metaMask.js -> @metamask/sdk": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/metaMask.js -> @metamask/sdk",
     "files": []
   },
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-5BVL7UIB.js -> ./components/embed/v3/crypto/CryptoWalletConnectionHandler.js": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-5BVL7UIB.js -> ./components/embed/v3/crypto/CryptoWalletConnectionHandler.js",
+  "../node_modules/@wagmi/connectors/dist/esm/safe.js -> @safe-global/safe-apps-provider": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/safe.js -> @safe-global/safe-apps-provider",
     "files": []
   },
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-H7YNSXLY.js -> ./components/auth/methods/web3/Web3AuthFlow.js": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-H7YNSXLY.js -> ./components/auth/methods/web3/Web3AuthFlow.js",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_crossmint_client-sdk-react-ui_dist_components_auth_methods_we-406e21.js"
-    ]
-  },
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-QASKWI5Y.js -> @ethersproject/transactions": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-QASKWI5Y.js -> @ethersproject/transactions",
+  "../node_modules/@wagmi/connectors/dist/esm/safe.js -> @safe-global/safe-apps-sdk": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/safe.js -> @safe-global/safe-apps-sdk",
     "files": []
   },
-  "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-QASKWI5Y.js -> @solana/web3.js": {
-    "id": "../node_modules/@crossmint/client-sdk-react-ui/dist/chunk-QASKWI5Y.js -> @solana/web3.js",
+  "../node_modules/@wagmi/connectors/dist/esm/walletConnect.js -> @walletconnect/ethereum-provider": {
+    "id": "../node_modules/@wagmi/connectors/dist/esm/walletConnect.js -> @walletconnect/ethereum-provider",
     "files": []
   },
-  "../node_modules/@dynamic-labs/ethereum/node_modules/@walletconnect/ethereum-provider/dist/index.es.js -> @walletconnect/modal": {
-    "id": "../node_modules/@dynamic-labs/ethereum/node_modules/@walletconnect/ethereum-provider/dist/index.es.js -> @walletconnect/modal",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_walletconnect_modal_dist_index_js.js"
-    ]
-  },
-  "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./nodecrypto.mjs": {
-    "id": "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./nodecrypto.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_api-key-stamper_dist_nodecrypto_mjs.js"
-    ]
-  },
-  "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./purejs.mjs": {
-    "id": "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./purejs.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_api-key-stamper_dist_purejs_mjs.js"
-    ]
-  },
-  "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./webcrypto.mjs": {
-    "id": "../node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./webcrypto.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_api-key-stamper_dist_webcrypto_mjs.js"
-    ]
-  },
-  "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./nodecrypto.mjs": {
-    "id": "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./nodecrypto.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_viem_node_modules_turnkey_api-key-stamper_dist_nodecr-3f1a0a.js"
-    ]
-  },
-  "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./purejs.mjs": {
-    "id": "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./purejs.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_viem_node_modules_turnkey_api-key-stamper_dist_purejs_mjs.js"
-    ]
-  },
-  "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./webcrypto.mjs": {
-    "id": "../node_modules/@turnkey/viem/node_modules/@turnkey/api-key-stamper/dist/index.mjs -> ./webcrypto.mjs",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_turnkey_viem_node_modules_turnkey_api-key-stamper_dist_webcry-35f353.js"
-    ]
+  "../node_modules/@wagmi/connectors/node_modules/@walletconnect/ethereum-provider/dist/index.es.js -> @walletconnect/modal": {
+    "id": "../node_modules/@wagmi/connectors/node_modules/@walletconnect/ethereum-provider/dist/index.es.js -> @walletconnect/modal",
+    "files": []
   },
   "../node_modules/@walletconnect/modal/dist/index.js -> @walletconnect/modal-ui": {
     "id": "../node_modules/@walletconnect/modal/dist/index.js -> @walletconnect/modal-ui",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_walletconnect_modal-ui_dist_index_js.js"
-    ]
-  },
-  "../node_modules/@zerodev/passkey-validator/_esm/toPasskeyValidator.js -> @simplewebauthn/browser": {
-    "id": "../node_modules/@zerodev/passkey-validator/_esm/toPasskeyValidator.js -> @simplewebauthn/browser",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_simplewebauthn_browser_dist_bundle_index_js.js"
-    ]
-  },
-  "../node_modules/@zerodev/webauthn-key/_esm/toWebAuthnKey.js -> @simplewebauthn/browser": {
-    "id": "../node_modules/@zerodev/webauthn-key/_esm/toWebAuthnKey.js -> @simplewebauthn/browser",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_simplewebauthn_browser_dist_bundle_index_js.js"
-    ]
+    "files": []
   },
   "../node_modules/viem/_esm/actions/public/call.js -> ../../utils/ccip.js": {
     "id": "../node_modules/viem/_esm/actions/public/call.js -> ../../utils/ccip.js",
@@ -97,6 +57,8 @@
   },
   "../node_modules/viem/_esm/utils/signature/recoverPublicKey.js -> @noble/curves/secp256k1": {
     "id": "../node_modules/viem/_esm/utils/signature/recoverPublicKey.js -> @noble/curves/secp256k1",
-    "files": []
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_noble_curves_esm_secp256k1_js.js"
+    ]
   }
 }

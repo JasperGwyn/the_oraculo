@@ -3,15 +3,13 @@ import GameInterface from '@/components/GameInterface'
 import Loading from '@/components/Loading'
 import Background from '@/components/Background'
 import Image from 'next/image'
-import { Button } from "@/components/ui/button"
+import ConnectButton from '@/components/AuthButton'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#a8d5d0] to-[#d5f2ef] overflow-hidden relative">
       <div className="absolute top-4 right-4 z-20">
-        <Button variant="outline" className="bg-white text-slate-800 hover:bg-slate-100 transition-all duration-300 border-2 border-slate-400 font-semibold text-lg px-6 py-2 rounded-full shadow-md hover:shadow-lg">
-          Log In
-        </Button>
+        <ConnectButton />
       </div>
       <Background />
       <div className="container mx-auto px-4 py-8 relative z-10">
