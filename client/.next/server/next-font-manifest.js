@@ -1,1 +1,0 @@
-self.__NEXT_FONT_MANIFEST="{\"pages\":{},\"app\":{\"/home/jasper/projects/eliza-mode-example/client/app/layout\":[\"static/media/a34f9d1faa5f3315-s.p.woff2\",\"static/media/b10b943099d1beb7-s.p.ttf\",\"static/media/1e854b90036e4a6e-s.p.ttf\"]},\"appUsingSizeAdjust\":true,\"pagesUsingSizeAdjust\":false}"

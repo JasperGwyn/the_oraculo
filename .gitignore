@@ -52,3 +52,9 @@ coverage
 .eslintcache
 
 *.Zone.Identifier
+# Ignorar directorio .next
+.next/
+
+# Ignorar archivos de Webpack hot-update
+*.hot-update.js
+*.hot-update.json

@@ -1,7 +1,7 @@
 import { defineChain } from 'viem'
 
 export const modeNetwork = defineChain({
-  id: 919,
+  id: 34443,
   name: 'Mode',
   network: 'mode',
   nativeCurrency: {
