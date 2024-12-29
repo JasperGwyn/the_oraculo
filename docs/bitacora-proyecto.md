@@ -85,3 +85,53 @@ La solución funciona porque:
 - Pendiente: Verificar que la configuración de networks sea la correcta para el proyecto
 - Considerar: Agregar manejo de errores y estados de carga en el proceso de conexión
 - Documentar: Crear una guía de uso para el equipo sobre cómo interactuar con la wallet
+
+## 2024-12-29 00:45
+
+### Objetivo de la sesión
+Establecer el formato correcto del ABI para que funcione con Wagmi y AppKit, específicamente para el contrato RoundManager.
+
+### Desafíos encontrados
+- El ABI en formato JSON completo no funcionaba correctamente con Wagmi
+- Errores de tipo al intentar usar el ABI con las funciones de escritura del contrato
+- Discrepancia entre el formato del ABI en `RoundManager.ts` y el formato que funcionaba en `test2/abi.ts`
+
+### Solución propuesta y pasos
+1. Simplificar el formato del ABI para que sea más conciso y tipado:
+   ```typescript
+   export const RoundManagerABI = [
+     {
+       name: 'placeBet',
+       type: 'function',
+       stateMutability: 'payable',
+       inputs: [
+         { name: 'roundId', type: 'uint256' },
+         { name: 'team', type: 'uint8' }
+       ],
+       outputs: []
+     },
+     // ... otras funciones siguiendo el mismo formato
+   ] as const
+   ```
+
+2. Asegurar que cada función del ABI tenga:
+   - `name`: nombre exacto de la función
+   - `type`: 'function'
+   - `stateMutability`: 'pure', 'view', 'payable', etc.
+   - `inputs`: array de parámetros con nombre y tipo
+   - `outputs`: array de valores de retorno con tipo
+
+3. Agregar `as const` al final del array para asegurar que TypeScript infiera los tipos correctamente
+
+### Razón o explicación
+La solución funciona porque:
+1. El formato simplificado es más fácil de mantener y menos propenso a errores
+2. La aserción `as const` permite a TypeScript inferir tipos literales, lo que mejora el tipado
+3. El formato coincide con lo que Wagmi espera internamente
+4. Los tipos de datos están correctamente mapeados entre Solidity y TypeScript
+
+### Próximos pasos / Reflexiones
+- Documentar todos los tipos de datos soportados y sus equivalencias
+- Considerar crear un script para generar el ABI automáticamente desde el contrato
+- Evaluar si se necesitan tipos más específicos para ciertos parámetros
+- Mantener sincronizado el ABI con cualquier cambio en el contrato
