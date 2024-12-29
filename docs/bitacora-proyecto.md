@@ -1,6 +1,6 @@
 # Bitácora del Proyecto
 
-## 2024-01-09 15:45
+## 2024-12-28 15:45
 
 ### Objetivo de la sesión
 Resolver el problema de conexión de la billetera a través de AppKit y Wagmi, específicamente el error "connection.connector.getChainId is not a function" que impedía la interacción con el contrato RoundManager.
@@ -50,7 +50,7 @@ La solución funciona porque:
 - Evaluar la necesidad de implementar un sistema de reconexión automática
 - Considerar agregar tests para verificar la integración con AppKit
 
-## 2024-01-09 17:45
+## 2024-12-25 17:45
 
 ### Objetivo de la sesión
 Implementar la funcionalidad de conexión de wallet usando Reown AppKit en el proyecto Next.js. https://docs.reown.com/appkit/next/core/installation

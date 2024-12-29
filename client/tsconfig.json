@@ -30,15 +30,6 @@
             ]
         }
     },
-    "files": [],
-    "references": [
-        {
-            "path": "packages/core"
-        },
-        {
-            "path": "packages/client-slack"
-        }
-    ],
     "include": [
         "next-env.d.ts",
         ".next/types/**/*.ts",
