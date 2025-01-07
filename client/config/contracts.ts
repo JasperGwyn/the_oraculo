@@ -1,0 +1,1 @@
+export const roundManagerAddress = process.env.NEXT_PUBLIC_ROUNDMANAGER_ADDRESS as `0x${string}`

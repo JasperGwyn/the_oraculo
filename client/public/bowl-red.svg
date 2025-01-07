@@ -1,0 +1,8 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="64" cy="64" r="60" fill="white" stroke="#FF4444" stroke-width="8"/>
+  <path d="M24 64C24 41.909 41.909 24 64 24C86.091 24 104 41.909 104 64" stroke="#FF4444" stroke-width="8"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M64 44C62.3431 44 61 45.3431 61 47V81C61 82.6569 62.3431 84 64 84C65.6569 84 67 82.6569 67 81V47C67 45.3431 65.6569 44 64 44Z" fill="#FF4444"/>
+  <path d="M44 54L84 54" stroke="#FF4444" stroke-width="8" stroke-linecap="round"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M34 64C34 47.4315 47.4315 34 64 34C80.5685 34 94 47.4315 94 64H34Z" fill="#FF4444" fill-opacity="0.1"/>
+</svg>
+
