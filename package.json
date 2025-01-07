@@ -1,5 +1,5 @@
 {
-    "name": "eliza-mode-example",
+    "name": "the_oraculo",
     "private": true,
     "scripts": {
         "build": "turbo run build",
@@ -23,6 +23,9 @@
         "react-dom": "18.2.0"
     },
     "packageManager": "pnpm@9.12.3",
+    "engines": {
+        "node": ">=22.12.0 <23.0.0"
+    },
     "workspaces": [
         "packages/contracts",
         "packages/theoraculo",
