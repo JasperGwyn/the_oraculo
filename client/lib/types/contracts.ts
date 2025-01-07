@@ -33,10 +33,21 @@ export interface Bet {
   claimed: boolean
 }
 
+export interface UserBet {
+  amount: bigint
+  team: Team
+  claimed: boolean
+}
+
 export interface RoundWithBets extends Round {
-  userBet?: Bet
+  userBet?: UserBet
   teamStakes: {
     [Team.Yes]: bigint
     [Team.No]: bigint
   }
+  teamParticipants: {
+    [Team.Yes]: bigint
+    [Team.No]: bigint
+  }
+  participants: string[]
 }

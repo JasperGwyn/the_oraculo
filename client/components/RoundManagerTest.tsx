@@ -41,7 +41,19 @@ export function RoundManagerTest() {
     isLoadingReward,
     hash,
     isConfirming,
-    isConfirmed
+    isConfirmed,
+    userBet,
+    isLoadingUserBet,
+    yesTeamStakes,
+    noTeamStakes,
+    isLoadingYesTeamStakes,
+    isLoadingNoTeamStakes,
+    yesTeamParticipants,
+    noTeamParticipants,
+    isLoadingYesTeamParticipants,
+    isLoadingNoTeamParticipants,
+    participants,
+    isLoadingParticipants,
   } = useRoundManager()
 
   const [betAmount, setBetAmount] = useState('0.01')
@@ -118,6 +130,51 @@ export function RoundManagerTest() {
         )}
       </div>
 
+      {/* Team Stats */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Team Statistics</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-semibold mb-2">Team YES</h4>
+            {isLoadingYesTeamStakes || isLoadingYesTeamParticipants ? (
+              <div>Loading...</div>
+            ) : (
+              <div>
+                <div>Stakes: {yesTeamStakes ? formatEther(yesTeamStakes) : '0'} ETH</div>
+                <div>Participants: {yesTeamParticipants?.toString() || '0'}</div>
+              </div>
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Team NO</h4>
+            {isLoadingNoTeamStakes || isLoadingNoTeamParticipants ? (
+              <div>Loading...</div>
+            ) : (
+              <div>
+                <div>Stakes: {noTeamStakes ? formatEther(noTeamStakes) : '0'} ETH</div>
+                <div>Participants: {noTeamParticipants?.toString() || '0'}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Your Bet */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">Your Current Bet</h3>
+        {isLoadingUserBet ? (
+          <div>Loading your bet...</div>
+        ) : userBet ? (
+          <div>
+            <div>Amount: {formatEther(userBet.amount)} ETH</div>
+            <div>Team: {Team[userBet.team]}</div>
+            <div>Claimed: {userBet.claimed ? 'Yes' : 'No'}</div>
+          </div>
+        ) : (
+          <div>No active bet</div>
+        )}
+      </div>
+
       {/* Rewards */}
       <div className="mb-6 p-4 bg-gray-100 rounded">
         <h3 className="font-bold mb-2">Your Rewards</h3>
@@ -165,6 +222,22 @@ export function RoundManagerTest() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Participants */}
+      <div className="mb-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-bold mb-2">All Participants</h3>
+        {isLoadingParticipants ? (
+          <div>Loading participants...</div>
+        ) : participants && participants.length > 0 ? (
+          <div className="font-mono text-sm max-h-40 overflow-y-auto">
+            {participants.map((participant, index) => (
+              <div key={index}>{participant}</div>
+            ))}
+          </div>
+        ) : (
+          <div>No participants yet</div>
+        )}
       </div>
 
       {/* Transaction Status */}

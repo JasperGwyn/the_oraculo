@@ -7,11 +7,12 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { useAccount, useChainId } from 'wagmi'
 import { modeNetwork } from '@/config/chains'
+import { Team } from '@/lib/types/contracts'
 
 export function PlaceBet() {
   const [roundId, setRoundId] = useState<number>(1)
   const [amount, setAmount] = useState<string>('0.001')
-  const [team, setTeam] = useState<number>(1) // 1 = Yes, 2 = No
+  const [team, setTeam] = useState<Team>(Team.Yes)
 
   const { address } = useAccount()
   const chainId = useChainId()
@@ -73,11 +74,11 @@ export function PlaceBet() {
           <label className="block text-sm font-medium text-black">Team</label>
           <select
             value={team}
-            onChange={(e) => setTeam(Number(e.target.value))}
+            onChange={(e) => setTeam(Number(e.target.value) as Team)}
             className="mt-1 block w-full border rounded-md p-2 text-black"
           >
-            <option value={1}>Yes</option>
-            <option value={2}>No</option>
+            <option value={Team.Yes}>Yes</option>
+            <option value={Team.No}>No</option>
           </select>
         </div>
       </div>

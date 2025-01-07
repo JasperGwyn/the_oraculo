@@ -6,10 +6,11 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { useAccount, useChainId } from 'wagmi'
 import { modeNetwork } from '@/config/chains'
+import { Team } from '@/lib/types/contracts'
 
 export function CompleteRound() {
   const [roundId, setRoundId] = useState<number>(1)
-  const [winningTeam, setWinningTeam] = useState<number>(1)
+  const [winningTeam, setWinningTeam] = useState<Team>(Team.Yes)
 
   const { address } = useAccount()
   const chainId = useChainId()
@@ -57,11 +58,11 @@ export function CompleteRound() {
           <label className="block text-sm font-medium text-black">Winning Team</label>
           <select
             value={winningTeam}
-            onChange={(e) => setWinningTeam(Number(e.target.value))}
+            onChange={(e) => setWinningTeam(Number(e.target.value) as Team)}
             className="mt-1 block w-full border rounded-md p-2 text-black"
           >
-            <option value={1}>Team 1</option>
-            <option value={2}>Team 2</option>
+            <option value={Team.Yes}>Yes</option>
+            <option value={Team.No}>No</option>
           </select>
         </div>
       </div>

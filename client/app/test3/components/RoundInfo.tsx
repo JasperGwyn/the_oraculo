@@ -6,16 +6,7 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { useAccount, useChainId } from 'wagmi'
 import { modeNetwork } from '@/config/chains'
-
-interface Round {
-  id: bigint
-  status: number
-  startTime: bigint
-  endTime: bigint
-  totalBetTeam1: bigint
-  totalBetTeam2: bigint
-  winningTeam: number
-}
+import { RoundStatus, Team, DistributionType } from '@/lib/types/contracts'
 
 export function RoundInfo() {
   const [roundId, setRoundId] = useState<number>(1)
@@ -29,7 +20,7 @@ export function RoundInfo() {
     args: [BigInt(roundId)],
     chainId: modeNetwork.id,
     account: address,
-  }) as { data: Round | undefined }
+  })
 
   const formatTimestamp = (timestamp: bigint) => {
     if (!timestamp) return 'Not set'
@@ -38,16 +29,15 @@ export function RoundInfo() {
   }
 
   const getRoundStatus = (status: number) => {
-    switch (status) {
-      case 0:
-        return 'Not Started'
-      case 1:
-        return 'Active'
-      case 2:
-        return 'Completed'
-      default:
-        return 'Unknown'
-    }
+    return RoundStatus[status] || 'Unknown'
+  }
+
+  const getTeamName = (team: number) => {
+    return Team[team] || 'Not set'
+  }
+
+  const getDistributionType = (type: number) => {
+    return DistributionType[type] || 'Unknown'
   }
 
   return (
@@ -67,27 +57,31 @@ export function RoundInfo() {
         <div className="space-y-2 text-black">
           <div>
             <span className="font-semibold">Status: </span>
-            {getRoundStatus(round.status)}
+            {getRoundStatus(Number(round[1]))}
           </div>
           <div>
             <span className="font-semibold">Start Time: </span>
-            {formatTimestamp(round.startTime)}
+            {formatTimestamp(round[2])}
           </div>
           <div>
             <span className="font-semibold">End Time: </span>
-            {formatTimestamp(round.endTime)}
+            {formatTimestamp(round[3])}
           </div>
           <div>
-            <span className="font-semibold">Total Bet Team 1: </span>
-            {Number(round.totalBetTeam1) / 1e18} ETH
-          </div>
-          <div>
-            <span className="font-semibold">Total Bet Team 2: </span>
-            {Number(round.totalBetTeam2) / 1e18} ETH
+            <span className="font-semibold">Total Staked: </span>
+            {Number(round[4]) / 1e18} ETH
           </div>
           <div>
             <span className="font-semibold">Winning Team: </span>
-            {round.winningTeam === 0 ? 'Not set' : round.winningTeam}
+            {getTeamName(Number(round[5]))}
+          </div>
+          <div>
+            <span className="font-semibold">Platform Fee: </span>
+            {Number(round[6]) / 10}%
+          </div>
+          <div>
+            <span className="font-semibold">Distribution Type: </span>
+            {getDistributionType(Number(round[7]))}
           </div>
         </div>
       ) : (

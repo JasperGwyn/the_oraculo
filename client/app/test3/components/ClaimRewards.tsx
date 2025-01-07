@@ -6,6 +6,8 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { useAccount, useChainId } from 'wagmi'
 import { modeNetwork } from '@/config/chains'
+import { Team } from '@/lib/types/contracts'
+import { formatEther } from 'viem'
 
 export function ClaimRewards() {
   const [roundId, setRoundId] = useState<number>(1)
@@ -18,13 +20,26 @@ export function ClaimRewards() {
     hash,
   })
 
-  const { data: reward } = useReadContract({
+  // Get user's bet information
+  const { data: userBet, isPending: isLoadingBet } = useReadContract({
+    address: roundManagerAddress,
+    abi: RoundManagerABI,
+    functionName: 'getUserBet',
+    args: address ? [BigInt(roundId), address] : undefined,
+    query: {
+      enabled: !!address,
+    }
+  })
+
+  // Calculate available rewards
+  const { data: reward, isPending: isLoadingReward } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'calculateReward',
-    args: [BigInt(roundId), address as `0x${string}`],
-    chainId: modeNetwork.id,
-    account: address,
+    args: address ? [BigInt(roundId), address] : undefined,
+    query: {
+      enabled: !!address,
+    }
   })
 
   const handleClaim = async () => {
@@ -57,16 +72,35 @@ export function ClaimRewards() {
         />
       </div>
 
-      {reward && (
+      {/* User's Bet Information */}
+      {isLoadingBet ? (
+        <div className="text-black">Loading bet information...</div>
+      ) : userBet ? (
+        <div className="space-y-2 text-black">
+          <div className="font-semibold">Your Bet</div>
+          <div>Amount: {formatEther(userBet[0])} ETH</div>
+          <div>Team: {Team[userBet[1] as Team]}</div>
+          <div>Claimed: {userBet[2] ? 'Yes' : 'No'}</div>
+        </div>
+      ) : (
+        <div className="text-black">No bet found for this round</div>
+      )}
+
+      {/* Available Rewards */}
+      {isLoadingReward ? (
+        <div className="text-black">Calculating rewards...</div>
+      ) : reward ? (
         <div className="text-black">
           <span className="font-semibold">Available Reward: </span>
-          {Number(reward) / 1e18} ETH
+          {formatEther(reward)} ETH
         </div>
+      ) : (
+        <div className="text-black">No rewards available</div>
       )}
 
       <button
         onClick={handleClaim}
-        disabled={isPending || isConfirming}
+        disabled={isPending || isConfirming || !reward || reward === 0n}
         className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-gray-400"
       >
         {isPending ? 'Confirming in wallet...' :

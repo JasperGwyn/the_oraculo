@@ -1,1 +1,1 @@
-export const roundManagerAddress = '0x3e29C788d826D6163d507936428E351aae4363eE' as `0x${string}`
+export const roundManagerAddress = process.env.NEXT_PUBLIC_ROUNDMANAGER_ADDRESS as `0x${string}`

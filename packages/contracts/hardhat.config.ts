@@ -20,7 +20,6 @@ const config: HardhatUserConfig = {
       url: process.env.MODE_NETWORK_URL || "https://mainnet.mode.network/",
       accounts: process.env.MODE_PRIVATE_KEY ? [process.env.MODE_PRIVATE_KEY] : [],
       chainId: 34443,
-      
     }
   },
   etherscan: {

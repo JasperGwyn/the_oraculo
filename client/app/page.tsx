@@ -16,7 +16,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center mb-16 relative">
           <div className="absolute inset-0 bg-white/10 blur-2xl rounded-full" />
           <div className="relative flex items-center mb-6">
-            <div className="animate-float">
+            <div>
               <Image
                 src="/theoraculo.png"
                 alt="The Oráculo"

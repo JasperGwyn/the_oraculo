@@ -6,11 +6,12 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { useAccount, useChainId } from 'wagmi'
 import { modeNetwork } from '@/config/chains'
+import { DistributionType } from '@/lib/types/contracts'
 
 export function CreateRound() {
   const [roundId, setRoundId] = useState<number>(1)
   const [duration, setDuration] = useState<number>(3600) // 1 hour in seconds
-  const [distributionType, setDistributionType] = useState<number>(0) // 0 = Manual, 1 = Automatic
+  const [distributionType, setDistributionType] = useState<DistributionType>(DistributionType.Manual)
 
   const { address } = useAccount()
   const chainId = useChainId()
@@ -64,17 +65,20 @@ export function CreateRound() {
             min={300}
             className="mt-1 block w-full border rounded-md p-2 text-black"
           />
+          <span className="text-xs text-gray-500">
+            {Math.floor(duration / 3600)} hours {Math.floor((duration % 3600) / 60)} minutes
+          </span>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-black">Distribution Type</label>
           <select
             value={distributionType}
-            onChange={(e) => setDistributionType(Number(e.target.value))}
+            onChange={(e) => setDistributionType(Number(e.target.value) as DistributionType)}
             className="mt-1 block w-full border rounded-md p-2 text-black"
           >
-            <option value={0}>Manual</option>
-            <option value={1}>Automatic</option>
+            <option value={DistributionType.Manual}>Manual</option>
+            <option value={DistributionType.Automatic}>Automatic</option>
           </select>
         </div>
       </div>

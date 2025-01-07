@@ -1,5 +1,4 @@
 packages:
-    - "packages/*"
-    - "client"
-    - "web-agent"
-    - "agent"
+  - 'packages/contracts'
+  - 'packages/theoraculo'
+  - 'client'
