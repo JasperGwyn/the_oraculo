@@ -1,5 +1,56 @@
 # Bitácora del Proyecto
 
+## 2024-01-03 10:30
+
+### Objetivo de la sesión
+Documentar el proceso para clonar un proyecto y comenzar con un historial limpio usando una rama huérfana en Git.
+
+### Desafíos encontrados
+- Necesidad de mantener el código actual pero comenzar con un historial de commits limpio
+- Evitar cargar todo el historial de commits antiguos al clonar el repositorio
+
+### Solución propuesta y pasos
+1. Clonar el repositorio normalmente:
+   ```bash
+   git clone <url-repositorio>
+   ```
+2. Crear una rama huérfana (sin historia):
+   ```bash
+   git checkout --orphan nueva-rama-limpia
+   ```
+3. Agregar todos los archivos actuales:
+   ```bash
+   git add .
+   ```
+4. Realizar el commit inicial:
+   ```bash
+   git commit -m "feat: commit inicial"
+   ```
+5. Eliminar la rama main actual:
+   ```bash
+   git branch -D main
+   ```
+6. Renombrar la rama huérfana a main:
+   ```bash
+   git branch -m main
+   ```
+7. Forzar el push al remoto:
+   ```bash
+   git push -f origin main
+   ```
+
+### Razón o explicación
+Esta solución funciona porque:
+1. La rama huérfana no hereda ningún historial previo
+2. Se mantiene todo el código actual pero con un historial limpio
+3. El repositorio comienza desde cero pero con el estado actual del código
+4. Es útil para proyectos que quieren mantener el código pero reiniciar su historial
+
+### Próximos pasos / Reflexiones
+- Asegurarse de que todos los colaboradores estén al tanto del cambio
+- Considerar hacer un backup del historial antiguo si fuera necesario
+- Documentar esta práctica en la guía de contribución del proyecto
+
 ## 2024-12-28 15:45
 
 ### Objetivo de la sesión
