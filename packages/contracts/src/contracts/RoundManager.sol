@@ -4,8 +4,9 @@ pragma solidity ^0.8.19;
 contract RoundManager {
     enum RoundStatus { Active, Evaluating, Completed }
     enum Team { None, Yes, No }
-    enum DistributionType { Manual, Automatic }
 
+    bool public isDevelopment = true; // Por defecto en modo desarrollo
+    
     struct Bet {
         address user;
         uint256 amount;
@@ -24,17 +25,17 @@ contract RoundManager {
         address[] participants;
         Team winningTeam;
         uint256 platformFee;  // en base 1000 (ej: 30 = 3%)
-        DistributionType distributionType;
+        mapping(Team => uint256) teamParticipants; // Nuevo: contador de participantes por equipo
     }
 
-    uint256 public activeRoundId;  // ID de la ronda activa actual
-    uint256 public lastRoundId;    // Último ID de ronda creado
-    uint256 public minDuration = 300;  // Duración mínima de una ronda (5 minutos)
+    uint256 public lastRoundId;
+    uint256 private _activeRoundId;  // renombrado de activeRoundId
+    uint256 public constant minDuration = 300; // 5 minutos
 
     mapping(uint256 => Round) public rounds;
     mapping(address => bool) public authorizedProcessors;
 
-    event RoundCreated(uint256 roundId, uint256 startTime, DistributionType distributionType);
+    event RoundCreated(uint256 roundId, uint256 startTime);
     event RoundStatusChanged(uint256 roundId, RoundStatus newStatus);
     event BetPlaced(uint256 roundId, address user, Team team, uint256 amount);
     event RoundCompleted(uint256 roundId, Team winningTeam);
@@ -50,6 +51,19 @@ contract RoundManager {
         authorizedProcessors[msg.sender] = true;
     }
 
+    function getActiveRoundId() public view returns (uint256) {
+        uint256 roundId = _activeRoundId;
+        Round storage round = rounds[roundId];
+        
+        if (roundId == 0 ||
+            round.status != RoundStatus.Active ||
+            block.timestamp >= round.endTime) {
+            return 0;
+        }
+        
+        return roundId;
+    }
+
     function getActiveRound() public view returns (
         uint256 id,
         RoundStatus status,
@@ -57,18 +71,14 @@ contract RoundManager {
         uint256 endTime,
         uint256 totalStaked,
         Team winningTeam,
-        uint256 platformFee,
-        DistributionType distributionType
+        uint256 platformFee
     ) {
-        Round storage round = rounds[activeRoundId];
-
-        // Si no hay ronda activa o la actual terminó
-        if (activeRoundId == 0 ||
-            round.status != RoundStatus.Active ||
-            block.timestamp >= round.endTime) {
-            return (0, RoundStatus.Completed, 0, 0, 0, Team.None, 0, DistributionType.Manual);
+        uint256 activeId = getActiveRoundId();
+        if (activeId == 0) {
+            return (0, RoundStatus.Completed, 0, 0, 0, Team.None, 0);
         }
-
+        
+        Round storage round = rounds[activeId];
         return (
             round.id,
             round.status,
@@ -76,15 +86,14 @@ contract RoundManager {
             round.endTime,
             round.totalStaked,
             round.winningTeam,
-            round.platformFee,
-            round.distributionType
+            round.platformFee
         );
     }
 
-    function _createNewRound(uint256 duration, DistributionType distributionType) internal returns (uint256) {
+    function _createNewRound(uint256 duration) internal returns (uint256) {
         // Verificar que no haya una ronda en evaluación
-        if (activeRoundId != 0) {
-            Round storage currentRound = rounds[activeRoundId];
+        if (_activeRoundId != 0) {
+            Round storage currentRound = rounds[_activeRoundId];
             require(currentRound.status == RoundStatus.Completed,
                 "Previous round must be completed before creating a new one");
         }
@@ -92,34 +101,27 @@ contract RoundManager {
         require(duration >= minDuration, "Duration too short");
 
         lastRoundId++;
-        activeRoundId = lastRoundId;
+        _activeRoundId = lastRoundId;
 
-        rounds[activeRoundId].id = activeRoundId;
-        rounds[activeRoundId].status = RoundStatus.Active;
-        rounds[activeRoundId].startTime = block.timestamp;
-        rounds[activeRoundId].endTime = block.timestamp + duration;
-        rounds[activeRoundId].platformFee = 30;
-        rounds[activeRoundId].distributionType = distributionType;
+        rounds[_activeRoundId].id = _activeRoundId;
+        rounds[_activeRoundId].status = RoundStatus.Active;
+        rounds[_activeRoundId].startTime = block.timestamp;
+        rounds[_activeRoundId].endTime = block.timestamp + duration;
+        rounds[_activeRoundId].platformFee = 30;
 
-        emit RoundCreated(activeRoundId, block.timestamp, distributionType);
+        emit RoundCreated(_activeRoundId, block.timestamp);
 
-        return activeRoundId;
+        return _activeRoundId;
     }
 
-    function createRound(
-        uint256 duration,
-        DistributionType distributionType
-    ) external onlyAuthorized {
-        _createNewRound(duration, distributionType);
+    function createRound(uint256 duration) external onlyAuthorized {
+        _createNewRound(duration);
     }
 
     function placeBet(uint256 roundId, Team team) external payable {
-        // Si no hay ronda activa y la última está completada, crear una nueva
-        if (activeRoundId == 0) {
-            require(lastRoundId == 0 || rounds[lastRoundId].status == RoundStatus.Completed,
-                "Cannot create new round while previous is being evaluated");
-            roundId = _createNewRound(3600, DistributionType.Automatic); // 1 hora por defecto para rondas automáticas
-        }
+        // Verificar que haya una ronda activa
+        require(getActiveRoundId() != 0, "No active round found");
+        require(roundId == getActiveRoundId(), "Bet only allowed on active round");
 
         Round storage round = rounds[roundId];
 
@@ -127,27 +129,36 @@ contract RoundManager {
         if (block.timestamp >= round.endTime) {
             round.status = RoundStatus.Evaluating;
             emit RoundStatusChanged(roundId, RoundStatus.Evaluating);
-            activeRoundId = 0; // No hay ronda activa
+            _activeRoundId = 0; // No hay ronda activa
             revert("Round has ended, please wait for evaluation to complete");
         }
 
-        require(roundId == activeRoundId, "Bet only allowed on active round");
         require(round.status == RoundStatus.Active, "Round not active");
         require(team != Team.None, "Invalid team");
         require(msg.value > 0, "Bet amount must be greater than 0");
 
+        // En producción, solo permitir una apuesta por usuario
+        if (!isDevelopment) {
+            require(round.userBets[msg.sender].amount == 0, "Already placed a bet in this round");
+        }
+
         // Si es la primera apuesta del usuario en esta ronda
         if (round.userBets[msg.sender].amount == 0) {
             round.participants.push(msg.sender);
+            round.userBets[msg.sender] = Bet({
+                user: msg.sender,
+                amount: msg.value,
+                team: team,
+                claimed: false
+            });
+        } else {
+            // En desarrollo, permitir múltiples apuestas y cambios de equipo
+            round.userBets[msg.sender].amount += msg.value;
+            round.userBets[msg.sender].team = team;
         }
 
-        // Actualizar o crear la apuesta del usuario
-        round.userBets[msg.sender] = Bet({
-            user: msg.sender,
-            amount: msg.value,
-            team: team,
-            claimed: false
-        });
+        // Incrementar contador de participantes del equipo
+        round.teamParticipants[team]++;
 
         round.teamStakes[team] += msg.value;
         round.totalStaked += msg.value;
@@ -182,10 +193,7 @@ contract RoundManager {
         round.winningTeam = winningTeam;
 
         emit RoundCompleted(roundId, winningTeam);
-
-        if (round.distributionType == DistributionType.Automatic) {
-            distributeRewards(roundId);
-        }
+        distributeRewards(roundId);
     }
 
     function distributeRewards(uint256 roundId) internal {
@@ -242,20 +250,35 @@ contract RoundManager {
         require(success, "Transfer failed");
     }
 
+    function setRoundStatus(uint256 roundId, RoundStatus newStatus) external onlyAuthorized {
+        Round storage round = rounds[roundId];
+        
+        // Validaciones según el estado al que queremos cambiar
+        if (newStatus == RoundStatus.Active) {
+            require(round.status == RoundStatus.Completed, "Can only activate from completed state");
+            require(block.timestamp < round.endTime, "Cannot activate an expired round");
+            _activeRoundId = roundId;
+        } 
+        else if (newStatus == RoundStatus.Evaluating) {
+            require(round.status == RoundStatus.Active, "Can only evaluate from active state");
+            // Solo validar el tiempo en producción
+            if (!isDevelopment) {
+                require(block.timestamp >= round.endTime, "Round has not ended yet");
+            }
+            _activeRoundId = 0;
+        }
+        else if (newStatus == RoundStatus.Completed) {
+            require(round.status == RoundStatus.Evaluating, "Can only complete from evaluating state");
+            require(round.winningTeam != Team.None, "Must set winning team before completing");
+        }
+
+        round.status = newStatus;
+        emit RoundStatusChanged(roundId, newStatus);
+    }
+
     // Getter functions for team statistics
     function getTeamStakes(uint256 roundId, Team team) public view returns (uint256) {
         return rounds[roundId].teamStakes[team];
-    }
-
-    function getTeamParticipants(uint256 roundId, Team team) public view returns (uint256) {
-        uint256 count = 0;
-        for (uint i = 0; i < rounds[roundId].participants.length; i++) {
-            address participant = rounds[roundId].participants[i];
-            if (rounds[roundId].userBets[participant].team == team) {
-                count++;
-            }
-        }
-        return count;
     }
 
     function getParticipants(uint256 roundId) public view returns (address[] memory) {
@@ -269,5 +292,22 @@ contract RoundManager {
     ) {
         Bet storage bet = rounds[roundId].userBets[user];
         return (bet.amount, bet.team, bet.claimed);
+    }
+
+    function getAllTeamParticipants(uint256 roundId) public view returns (
+        uint256 noneCount,
+        uint256 yesCount,
+        uint256 noCount
+    ) {
+        Round storage round = rounds[roundId];
+        return (
+            round.teamParticipants[Team.None],
+            round.teamParticipants[Team.Yes],
+            round.teamParticipants[Team.No]
+        );
+    }
+
+    function setDevelopmentMode(bool _isDevelopment) external onlyAuthorized {
+        isDevelopment = _isDevelopment;
     }
 }

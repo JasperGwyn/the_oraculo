@@ -36,9 +36,9 @@
         "RoundManager"
       ]
     },
-    "/home/jasper/projects/eliza-mode-example/packages/contracts/src/contracts/RoundManager.sol": {
-      "lastModificationDate": 1736206490904,
-      "contentHash": "7841714da3acf8a3a79fcfc7713b7b71",
+    "/home/jasper/projects/the_oraculo/packages/contracts/src/contracts/RoundManager.sol": {
+      "lastModificationDate": 1736376775354,
+      "contentHash": "0b04d2a30aee9357b2b32fb811aef553",
       "sourceName": "src/contracts/RoundManager.sol",
       "solcConfig": {
         "version": "0.8.19",

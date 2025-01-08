@@ -26,21 +26,24 @@ import type {
 export interface RoundManagerInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "activeRoundId"
       | "authorizedProcessors"
       | "calculateReward"
       | "claimRewards"
       | "completeRound"
       | "createRound"
       | "getActiveRound"
+      | "getActiveRoundId"
+      | "getAllTeamParticipants"
       | "getParticipants"
-      | "getTeamParticipants"
       | "getTeamStakes"
       | "getUserBet"
+      | "isDevelopment"
       | "lastRoundId"
       | "minDuration"
       | "placeBet"
       | "rounds"
+      | "setDevelopmentMode"
+      | "setRoundStatus"
       | "withdrawPlatformFees"
   ): FunctionFragment;
 
@@ -54,10 +57,6 @@ export interface RoundManagerInterface extends Interface {
       | "RoundStatusChanged"
   ): EventFragment;
 
-  encodeFunctionData(
-    functionFragment: "activeRoundId",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "authorizedProcessors",
     values: [AddressLike]
@@ -76,19 +75,23 @@ export interface RoundManagerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createRound",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getActiveRound",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getParticipants",
+    functionFragment: "getActiveRoundId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAllTeamParticipants",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getTeamParticipants",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "getParticipants",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTeamStakes",
@@ -97,6 +100,10 @@ export interface RoundManagerInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getUserBet",
     values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isDevelopment",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lastRoundId",
@@ -115,14 +122,18 @@ export interface RoundManagerInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setDevelopmentMode",
+    values: [boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setRoundStatus",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "withdrawPlatformFees",
     values: [BigNumberish]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "activeRoundId",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "authorizedProcessors",
     data: BytesLike
@@ -148,11 +159,15 @@ export interface RoundManagerInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getParticipants",
+    functionFragment: "getActiveRoundId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getTeamParticipants",
+    functionFragment: "getAllTeamParticipants",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getParticipants",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -160,6 +175,10 @@ export interface RoundManagerInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getUserBet", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isDevelopment",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "lastRoundId",
     data: BytesLike
@@ -170,6 +189,14 @@ export interface RoundManagerInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "placeBet", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "rounds", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setDevelopmentMode",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setRoundStatus",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawPlatformFees",
     data: BytesLike
@@ -251,20 +278,11 @@ export namespace RoundCompletedEvent {
 }
 
 export namespace RoundCreatedEvent {
-  export type InputTuple = [
-    roundId: BigNumberish,
-    startTime: BigNumberish,
-    distributionType: BigNumberish
-  ];
-  export type OutputTuple = [
-    roundId: bigint,
-    startTime: bigint,
-    distributionType: bigint
-  ];
+  export type InputTuple = [roundId: BigNumberish, startTime: BigNumberish];
+  export type OutputTuple = [roundId: bigint, startTime: bigint];
   export interface OutputObject {
     roundId: bigint;
     startTime: bigint;
-    distributionType: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -328,8 +346,6 @@ export interface RoundManager extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  activeRoundId: TypedContractMethod<[], [bigint], "view">;
-
   authorizedProcessors: TypedContractMethod<
     [arg0: AddressLike],
     [boolean],
@@ -355,7 +371,7 @@ export interface RoundManager extends BaseContract {
   >;
 
   createRound: TypedContractMethod<
-    [duration: BigNumberish, distributionType: BigNumberish],
+    [duration: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -363,7 +379,7 @@ export interface RoundManager extends BaseContract {
   getActiveRound: TypedContractMethod<
     [],
     [
-      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
         id: bigint;
         status: bigint;
         startTime: bigint;
@@ -371,7 +387,20 @@ export interface RoundManager extends BaseContract {
         totalStaked: bigint;
         winningTeam: bigint;
         platformFee: bigint;
-        distributionType: bigint;
+      }
+    ],
+    "view"
+  >;
+
+  getActiveRoundId: TypedContractMethod<[], [bigint], "view">;
+
+  getAllTeamParticipants: TypedContractMethod<
+    [roundId: BigNumberish],
+    [
+      [bigint, bigint, bigint] & {
+        noneCount: bigint;
+        yesCount: bigint;
+        noCount: bigint;
       }
     ],
     "view"
@@ -380,12 +409,6 @@ export interface RoundManager extends BaseContract {
   getParticipants: TypedContractMethod<
     [roundId: BigNumberish],
     [string[]],
-    "view"
-  >;
-
-  getTeamParticipants: TypedContractMethod<
-    [roundId: BigNumberish, team: BigNumberish],
-    [bigint],
     "view"
   >;
 
@@ -407,6 +430,8 @@ export interface RoundManager extends BaseContract {
     "view"
   >;
 
+  isDevelopment: TypedContractMethod<[], [boolean], "view">;
+
   lastRoundId: TypedContractMethod<[], [bigint], "view">;
 
   minDuration: TypedContractMethod<[], [bigint], "view">;
@@ -420,7 +445,7 @@ export interface RoundManager extends BaseContract {
   rounds: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
         id: bigint;
         status: bigint;
         startTime: bigint;
@@ -428,10 +453,21 @@ export interface RoundManager extends BaseContract {
         totalStaked: bigint;
         winningTeam: bigint;
         platformFee: bigint;
-        distributionType: bigint;
       }
     ],
     "view"
+  >;
+
+  setDevelopmentMode: TypedContractMethod<
+    [_isDevelopment: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setRoundStatus: TypedContractMethod<
+    [roundId: BigNumberish, newStatus: BigNumberish],
+    [void],
+    "nonpayable"
   >;
 
   withdrawPlatformFees: TypedContractMethod<
@@ -444,9 +480,6 @@ export interface RoundManager extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
-  getFunction(
-    nameOrSignature: "activeRoundId"
-  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "authorizedProcessors"
   ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
@@ -469,17 +502,13 @@ export interface RoundManager extends BaseContract {
   >;
   getFunction(
     nameOrSignature: "createRound"
-  ): TypedContractMethod<
-    [duration: BigNumberish, distributionType: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  ): TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "getActiveRound"
   ): TypedContractMethod<
     [],
     [
-      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
         id: bigint;
         status: bigint;
         startTime: bigint;
@@ -487,7 +516,22 @@ export interface RoundManager extends BaseContract {
         totalStaked: bigint;
         winningTeam: bigint;
         platformFee: bigint;
-        distributionType: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getActiveRoundId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getAllTeamParticipants"
+  ): TypedContractMethod<
+    [roundId: BigNumberish],
+    [
+      [bigint, bigint, bigint] & {
+        noneCount: bigint;
+        yesCount: bigint;
+        noCount: bigint;
       }
     ],
     "view"
@@ -495,13 +539,6 @@ export interface RoundManager extends BaseContract {
   getFunction(
     nameOrSignature: "getParticipants"
   ): TypedContractMethod<[roundId: BigNumberish], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "getTeamParticipants"
-  ): TypedContractMethod<
-    [roundId: BigNumberish, team: BigNumberish],
-    [bigint],
-    "view"
-  >;
   getFunction(
     nameOrSignature: "getTeamStakes"
   ): TypedContractMethod<
@@ -523,6 +560,9 @@ export interface RoundManager extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "isDevelopment"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
     nameOrSignature: "lastRoundId"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -540,7 +580,7 @@ export interface RoundManager extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint] & {
         id: bigint;
         status: bigint;
         startTime: bigint;
@@ -548,10 +588,19 @@ export interface RoundManager extends BaseContract {
         totalStaked: bigint;
         winningTeam: bigint;
         platformFee: bigint;
-        distributionType: bigint;
       }
     ],
     "view"
+  >;
+  getFunction(
+    nameOrSignature: "setDevelopmentMode"
+  ): TypedContractMethod<[_isDevelopment: boolean], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setRoundStatus"
+  ): TypedContractMethod<
+    [roundId: BigNumberish, newStatus: BigNumberish],
+    [void],
+    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "withdrawPlatformFees"
@@ -645,7 +694,7 @@ export interface RoundManager extends BaseContract {
       RoundCompletedEvent.OutputObject
     >;
 
-    "RoundCreated(uint256,uint256,uint8)": TypedContractEvent<
+    "RoundCreated(uint256,uint256)": TypedContractEvent<
       RoundCreatedEvent.InputTuple,
       RoundCreatedEvent.OutputTuple,
       RoundCreatedEvent.OutputObject

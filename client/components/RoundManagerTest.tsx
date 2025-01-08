@@ -74,7 +74,7 @@ export function RoundManagerTest() {
     try {
       setError(undefined)
       addLog(`Attempting to place bet: ${betAmount} ETH on team ${team}`)
-      addLog(`Contract params: roundId=1, team=${team}, amount=${betAmount} ETH`)
+      addLog(`Contract params: roundId=${currentRound?.id || 'unknown'}, team=${team}, amount=${betAmount} ETH`)
 
       const tx = await submitBet(team, betAmount)
       addLog(`Transaction submitted with hash: ${tx}`)

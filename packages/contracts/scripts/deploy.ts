@@ -1,4 +1,27 @@
 import { ethers, run } from "hardhat";
+import * as fs from 'fs';
+import * as path from 'path';
+
+async function updateEnvLocal(newAddress: string) {
+  const envPath = path.join(__dirname, '../../../client/.env.local');
+  let envContent = fs.readFileSync(envPath, 'utf8');
+
+  // Buscar la línea actual de NEXT_PUBLIC_ROUNDMANAGER_ADDRESS
+  const addressRegex = /^NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=.+$/m;
+  const currentLine = envContent.match(addressRegex)?.[0];
+
+  if (currentLine) {
+    // Si ya existe una dirección, actualizarla y mantener la anterior como comentario
+    const newLine = `NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress} #nuevo ${currentLine.split('=')[1]}`;
+    envContent = envContent.replace(addressRegex, newLine);
+  } else {
+    // Si no existe, agregarla
+    envContent += `\nNEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress}`;
+  }
+
+  fs.writeFileSync(envPath, envContent);
+  console.log(`Updated .env.local with new contract address`);
+}
 
 async function main() {
   console.log("Deploying RoundManager...");
@@ -10,6 +33,9 @@ async function main() {
 
   const contractAddress = await roundManager.getAddress();
   console.log(`RoundManager deployed to ${contractAddress}`);
+
+  // Actualizar .env.local
+  await updateEnvLocal(contractAddress);
 
   // Esperar unos bloques antes de verificar
   console.log("Esperando unos bloques antes de verificar...");

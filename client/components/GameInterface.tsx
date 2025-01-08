@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
 import { modal } from '@/context'
 import Oraculo from './Oraculo'
 import QuestionDisplay from './QuestionDisplay'
@@ -12,14 +12,32 @@ import MessageSubmission from './MessageSubmission'
 import FinalPage from './FinalPage'
 import WinnerPage from './WinnerPage'
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { RoundManagerABI } from '@/config/abis/RoundManager'
+import { roundManagerAddress } from '@/config/contracts'
+import { Team } from '@/lib/types/contracts'
 
 export default function GameInterface() {
   const [gamePhase, setGamePhase] = useState('selection')
-  const [selectedTeam, setSelectedTeam] = useState<'YES' | 'NO' | null>(null)
-  const [assignedTeam, setAssignedTeam] = useState<'YES' | 'NO' | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
+  const [assignedTeam, setAssignedTeam] = useState<Team | null>(null)
   const [userMessage, setUserMessage] = useState('');
   const [userBet, setUserBet] = useState(0);
   const { isConnected } = useAccount()
+
+  // Get active round data
+  const { data: activeRound } = useReadContract({
+    address: roundManagerAddress,
+    abi: RoundManagerABI,
+    functionName: 'getActiveRound',
+  })
+
+  // Get team participants data
+  const { data: teamParticipants } = useReadContract({
+    address: roundManagerAddress,
+    abi: RoundManagerABI,
+    functionName: 'getAllTeamParticipants',
+    args: activeRound ? [activeRound[0]] : undefined, // Use active round ID
+  })
 
   const question = "Should AI assistants only communicate in pirate speak on International Talk Like a Pirate Day?"
   const oraculoPersonality = "Sarcastic"
@@ -35,9 +53,43 @@ export default function GameInterface() {
       }
     }
 
-    // Simulate oracle team assignment - this should be replaced with actual oracle call
-    const randomTeam = Math.random() < 0.5 ? 'YES' : 'NO';
-    setAssignedTeam(randomTeam);
+    let assignedTeamValue: Team
+
+    // Si no hay ronda activa o la actual terminó
+    if (!activeRound || Number(activeRound[0]) === 0) {
+      // Asignar aleatoriamente ya que será el primer participante de una nueva ronda
+      assignedTeamValue = Math.random() < 0.5 ? Team.Yes : Team.No
+      console.log('No active round, random team assignment:', assignedTeamValue)
+    } else {
+      // Hay una ronda activa, usar la lógica de balance de equipos
+      if (!teamParticipants) {
+        console.error('Could not get team participants data')
+        return
+      }
+
+      // Destructure participant counts
+      const [noneCount, yesCount, noCount] = teamParticipants
+      
+      if (yesCount < noCount) {
+        // Si hay menos en YES, asignar a YES
+        assignedTeamValue = Team.Yes
+      } else if (noCount < yesCount) {
+        // Si hay menos en NO, asignar a NO
+        assignedTeamValue = Team.No
+      } else {
+        // Si están iguales, asignar aleatoriamente
+        assignedTeamValue = Math.random() < 0.5 ? Team.Yes : Team.No
+      }
+
+      console.log('Team assignment:', {
+        noneCount: Number(noneCount),
+        yesCount: Number(yesCount),
+        noCount: Number(noCount),
+        assigned: assignedTeamValue
+      })
+    }
+
+    setAssignedTeam(assignedTeamValue);
     setGamePhase('assigned');
   }
 
@@ -46,47 +98,11 @@ export default function GameInterface() {
     setGamePhase('message');
   }
 
-  // Mock data for the teams
-  const mockTeams = [
-    {
-      name: 'YES' as const,
-      ethAmount: 0.5,
-      participants: 42,
-      messages: [
-        "Aye, matey! Let the AI speak like a true buccaneer!",
-        "It's the perfect way to celebrate, ye landlubbers!",
-        "Shiver me timbers! This be a grand idea!",
-        ...(selectedTeam === 'YES' ? [userMessage] : [])
-      ]
-    },
-    {
-      name: 'NO' as const,
-      ethAmount: 0.6,
-      participants: 38,
-      messages: [
-        "Let's keep AI communication clear and professional.",
-        "Pirate speak might be fun, but it could lead to misunderstandings.",
-        "Not everyone celebrates Talk Like a Pirate Day, matey!",
-        ...(selectedTeam === 'NO' ? [userMessage] : [])
-      ]
-    }
-  ];
-
-  // Simulate winner (for demo purposes)
-  const winningTeam = mockTeams[0];
-  const losingTeam = mockTeams[1];
-
   if (gamePhase === 'winner') {
     return (
       <WinnerPage
-        winningTeam={winningTeam}
-        losingTeam={losingTeam}
-        roundNumber={3}
-        totalPrizePool={1.1}
-        winnerPrizePool={0.9}
-        timeElapsed="5:30"
-        userTeam={selectedTeam || 'YES'}
-        userWinnings={0.1}
+        roundNumber={Number(activeRound?.[0]) || 1}
+        userTeam={selectedTeam || Team.None}
       />
     )
   }
@@ -101,9 +117,8 @@ export default function GameInterface() {
         <div className="glass-card rounded-3xl p-6 sm:p-8">
           {gamePhase === 'final' ? (
             <FinalPage
-              teams={mockTeams}
-              currentRound={3}
-              timeRemaining="2:30"
+              currentRound={Number(activeRound?.[0]) || 1}
+              timeRemaining=""
               onRoundComplete={() => setGamePhase('winner')}
               question={question}
             />
@@ -121,14 +136,17 @@ export default function GameInterface() {
                           setUserMessage(message);
                           setGamePhase('submission');
                         }}
-                        team={selectedTeam}
+                        team={selectedTeam === Team.Yes ? 'YES' : 'NO'}
                       />
                     </TabsContent>
                     <TabsContent value="submission">
-                      <BetPlacement onBetPlaced={(amount) => {
-                        setUserBet(amount);
-                        setGamePhase('final');
-                      }} />
+                      <BetPlacement 
+                        onBetPlaced={(amount) => {
+                          setUserBet(amount);
+                          setGamePhase('final');
+                        }}
+                        team={selectedTeam === Team.Yes ? 'YES' : 'NO'}
+                      />
                     </TabsContent>
                   </Tabs>
                 ) : gamePhase === 'assigned' ? (
@@ -138,7 +156,7 @@ export default function GameInterface() {
                     className="text-center p-6"
                   >
                     <h3 className="text-xl font-bold text-slate-700 mb-4">
-                      The Oracle has assigned you to Team {assignedTeam}!
+                      The Oracle has assigned you to Team {assignedTeam === Team.Yes ? 'YES' : 'NO'}!
                     </h3>
                     <motion.button
                       whileHover={{ scale: 1.05 }}

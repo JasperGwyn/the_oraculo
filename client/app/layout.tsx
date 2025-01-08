@@ -9,7 +9,7 @@ import { WagmiProvider } from '@/providers/WagmiProvider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AppKit Example App',
+  title: 'The Oráculo´s',
   description: 'Powered by Reown'
 }
 
