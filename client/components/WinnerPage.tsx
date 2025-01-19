@@ -26,7 +26,7 @@ export default function WinnerPage({
   const { address } = useAccount()
 
   // Get round data
-  const { data: round } = useReadContract({
+  const { data: round, isLoading: isLoadingRound, error: roundError } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'rounds',
@@ -34,14 +34,14 @@ export default function WinnerPage({
   })
 
   // Get team stakes
-  const { data: yesTeamStakes } = useReadContract({
+  const { data: yesTeamStakes, isLoading: isLoadingYesStakes } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getTeamStakes',
     args: [BigInt(roundNumber), Team.Yes],
   })
 
-  const { data: noTeamStakes } = useReadContract({
+  const { data: noTeamStakes, isLoading: isLoadingNoStakes } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getTeamStakes',
@@ -49,7 +49,7 @@ export default function WinnerPage({
   })
 
   // Get team participants count
-  const { data: teamParticipants } = useReadContract({
+  const { data: teamParticipants, isLoading: isLoadingParticipants } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getAllTeamParticipants',
@@ -61,17 +61,88 @@ export default function WinnerPage({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getUserBet',
-    args: [BigInt(roundNumber), address || '0x'],
+    args: [BigInt(roundNumber), address || '0x0000000000000000000000000000000000000000'],
   })
 
-  if (!round || !yesTeamStakes || !noTeamStakes || !teamParticipants) {
-    return <div>Loading...</div>
+  console.log('WinnerPage data:', {
+    round,
+    yesTeamStakes,
+    noTeamStakes,
+    teamParticipants,
+    userBet,
+    isLoading: {
+      round: isLoadingRound,
+      yesStakes: isLoadingYesStakes,
+      noStakes: isLoadingNoStakes,
+      participants: isLoadingParticipants
+    }
+  })
+
+  if (roundError) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Round</h2>
+          <p className="text-gray-600">{roundError.message}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoadingRound) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-600 mb-2">Loading Round Data</h2>
+          <p className="text-gray-500">Please wait while we fetch the results...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!round) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-orange-600 mb-2">Round Not Found</h2>
+          <p className="text-gray-600">This round does not exist yet.</p>
+          <a href="/" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            Go to Current Round
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if round is still active or in evaluation
+  const roundStatus = Number(round[1])
+  if (roundStatus !== 2) { // 2 is Completed status
+    const statusMessage = roundStatus === 0 ? "Round Not Started" : "Round In Progress"
+    const statusDescription = roundStatus === 0 
+      ? "This round hasn't started yet."
+      : "This round is still in progress. Please wait until it's completed to see the results."
+
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-blue-600 mb-2">{statusMessage}</h2>
+          <p className="text-gray-600">{statusDescription}</p>
+          <a href="/" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            Go to Current Round
+          </a>
+        </div>
+      </div>
+    )
   }
 
   const winningTeamEnum = Number(round[5]) as Team
   const winningTeamName = winningTeamEnum === Team.Yes ? 'YES' : 'NO'
-  const totalPrizePool = Number(formatEther(yesTeamStakes + noTeamStakes))
-  const winnerPrizePool = Number(formatEther(winningTeamEnum === Team.Yes ? yesTeamStakes : noTeamStakes))
+  
+  // Usamos 0n como valor por defecto si los stakes no están disponibles
+  const yesStakes = yesTeamStakes || 0n
+  const noStakes = noTeamStakes || 0n
+  const totalPrizePool = Number(formatEther(yesStakes + noStakes))
+  const winnerPrizePool = Number(formatEther(winningTeamEnum === Team.Yes ? yesStakes : noStakes))
   const isUserWinner = userTeam === winningTeamEnum
   const userWinnings = userBet ? Number(formatEther(userBet[0])) : undefined
 
@@ -83,17 +154,21 @@ export default function WinnerPage({
   const minutes = Math.floor((duration % 3600) / 60)
   const timeElapsed = `${hours}h ${minutes}m`
 
+  // Usamos valores por defecto si los participantes no están disponibles
+  const defaultParticipants = [0n, 0n, 0n]
+  const participants = teamParticipants || defaultParticipants
+
   const teams: { winningTeam: TeamData; losingTeam: TeamData } = {
     winningTeam: {
       name: winningTeamName,
-      ethAmount: Number(formatEther(winningTeamEnum === Team.Yes ? yesTeamStakes : noTeamStakes)),
-      participants: Number(teamParticipants[winningTeamEnum === Team.Yes ? 1 : 2]),
+      ethAmount: Number(formatEther(winningTeamEnum === Team.Yes ? yesStakes : noStakes)),
+      participants: Number(participants[winningTeamEnum === Team.Yes ? 1 : 2]),
       messages: [] // TODO: Implement messages
     },
     losingTeam: {
       name: winningTeamName === 'YES' ? 'NO' : 'YES',
-      ethAmount: Number(formatEther(winningTeamEnum === Team.Yes ? noTeamStakes : yesTeamStakes)),
-      participants: Number(teamParticipants[winningTeamEnum === Team.Yes ? 2 : 1]),
+      ethAmount: Number(formatEther(winningTeamEnum === Team.Yes ? noStakes : yesStakes)),
+      participants: Number(participants[winningTeamEnum === Team.Yes ? 2 : 1]),
       messages: [] // TODO: Implement messages
     }
   }
@@ -106,6 +181,13 @@ export default function WinnerPage({
     >
       {/* Winner Announcement */}
       <div className="text-center mb-8">
+        <motion.h1 
+          initial={{ scale: 0.5 }}
+          animate={{ scale: 1 }}
+          className="text-4xl font-bold mb-4 text-black"
+          >
+            Round {roundNumber}
+        </motion.h1>
         <motion.h1
           initial={{ scale: 0.5 }}
           animate={{ scale: 1 }}
@@ -113,7 +195,7 @@ export default function WinnerPage({
         >
           Team {teams.winningTeam.name} Wins!
         </motion.h1>
-        <p className="text-xl text-black">Round {roundNumber} has concluded</p>
+       
       </div>
 
       {/* Round Statistics */}

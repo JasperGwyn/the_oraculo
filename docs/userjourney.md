@@ -34,7 +34,7 @@
    - Once submitted, their message is recorded and they’re free to leave.
 
 5. **Placing the Bet (On-Chain):**
-   - After connecting their wallet, users place a token bet into a shared prize pool, which will be distributed among the winners.
+   - users place a token bet into a shared prize pool, which will be distributed among the winners.
    
 6. **Waiting for the Round to End:**
    - The round remains open for a set time (e.g., two hours).

@@ -7,6 +7,7 @@ import { roundManagerAddress } from '@/config/contracts'
 import { formatEther } from 'viem'
 import { Team, RoundStatus } from '@/lib/types/contracts'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface FinalPageProps {
   currentRound: number
@@ -22,6 +23,7 @@ export default function FinalPage({
   question
 }: FinalPageProps) {
   const [timeRemaining, setTimeRemaining] = useState<string>('Calculating...')
+  const router = useRouter()
 
   // Get round data
   const { data: round } = useReadContract({
@@ -195,7 +197,7 @@ export default function FinalPage({
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onRoundComplete}
+            onClick={() => router.push(`/rounds/${currentRound}`)}
             className="px-8 py-3 bg-blue-500 text-white rounded-full font-semibold
               shadow-lg hover:bg-blue-600 transition-colors"
           >

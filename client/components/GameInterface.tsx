@@ -15,8 +15,11 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { Team } from '@/lib/types/contracts'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function GameInterface() {
+  const router = useRouter()
   const [gamePhase, setGamePhase] = useState('selection')
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [assignedTeam, setAssignedTeam] = useState<Team | null>(null)
@@ -99,12 +102,8 @@ export default function GameInterface() {
   }
 
   if (gamePhase === 'winner') {
-    return (
-      <WinnerPage
-        roundNumber={Number(activeRound?.[0]) || 1}
-        userTeam={selectedTeam || Team.None}
-      />
-    )
+    router.push(`/rounds/${Number(activeRound?.[0]) || 1}`)
+    return null
   }
 
   return (
@@ -113,6 +112,16 @@ export default function GameInterface() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-6xl mx-auto"
     >
+      {/* Previous Rounds Quick Access */}
+      <div className="mb-6 flex justify-end">
+        <Link
+          href="/rounds/1"
+          className="px-4 py-2 bg-white/80 hover:bg-white text-slate-700 rounded-lg shadow transition-colors"
+        >
+          View Round 1 Results
+        </Link>
+      </div>
+
       <div className="relative">
         <div className="glass-card rounded-3xl p-6 sm:p-8">
           {gamePhase === 'final' ? (
