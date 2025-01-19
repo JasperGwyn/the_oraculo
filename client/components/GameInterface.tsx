@@ -4,19 +4,16 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useReadContract } from 'wagmi'
 import { modal } from '@/context'
-import Oraculo from './Oraculo'
 import QuestionDisplay from './QuestionDisplay'
 import TeamSelection from './TeamSelection'
 import BetPlacement from './BetPlacement'
 import MessageSubmission from './MessageSubmission'
 import FinalPage from './FinalPage'
-import WinnerPage from './WinnerPage'
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { Team } from '@/lib/types/contracts'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import RoundHistory from './RoundHistory'
 
 export default function GameInterface() {
@@ -24,8 +21,6 @@ export default function GameInterface() {
   const [gamePhase, setGamePhase] = useState('selection')
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [assignedTeam, setAssignedTeam] = useState<Team | null>(null)
-  const [userMessage, setUserMessage] = useState('');
-  const [userBet, setUserBet] = useState(0);
   const { isConnected } = useAccount()
   const [showHistory, setShowHistory] = useState(false)
 
@@ -159,19 +154,13 @@ export default function GameInterface() {
                   <Tabs value={gamePhase} onValueChange={(value) => setGamePhase(value as any)}>
                     <TabsContent value="message">
                       <MessageSubmission
-                        onSubmit={(message) => {
-                          setUserMessage(message);
-                          setGamePhase('submission');
-                        }}
+                        onSubmit={() => setGamePhase('submission')}
                         team={selectedTeam === Team.Yes ? 'YES' : 'NO'}
                       />
                     </TabsContent>
                     <TabsContent value="submission">
                       <BetPlacement 
-                        onBetPlaced={(amount) => {
-                          setUserBet(amount);
-                          setGamePhase('final');
-                        }}
+                        onBetPlaced={() => setGamePhase('final')}
                         team={selectedTeam === Team.Yes ? 'YES' : 'NO'}
                       />
                     </TabsContent>

@@ -25,6 +25,11 @@ export default function FinalPage({
   const [timeRemaining, setTimeRemaining] = useState<string>('Calculating...')
   const router = useRouter()
 
+  const handleBack = () => {
+    window.scrollTo(0, 0)
+    router.back()
+  }
+
   // Get round data
   const { data: round } = useReadContract({
     address: roundManagerAddress,
@@ -190,6 +195,19 @@ export default function FinalPage({
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Back Button */}
+        <div className="text-center mt-8">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleBack}
+            className="px-8 py-3 bg-blue-500 text-white rounded-full font-semibold
+              shadow-lg hover:bg-blue-600 transition-colors"
+          >
+            Back
+          </motion.button>
         </div>
 
         {/* Show Winner Button */}

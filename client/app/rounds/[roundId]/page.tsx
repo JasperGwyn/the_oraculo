@@ -2,10 +2,11 @@
 
 import { useParams } from 'next/navigation'
 import WinnerPage from '@/components/WinnerPage'
+import FinalPage from '@/components/FinalPage'
 import { useReadContract, useAccount } from 'wagmi'
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
-import { Team } from '@/lib/types/contracts'
+import { Team, RoundStatus } from '@/lib/types/contracts'
 import { useEffect } from 'react'
 
 export default function RoundPage() {
@@ -29,6 +30,13 @@ export default function RoundPage() {
     abi: RoundManagerABI,
     functionName: 'rounds',
     args: [BigInt(roundId)],
+  })
+
+  // Get active round to get the question
+  const { data: activeRound } = useReadContract({
+    address: roundManagerAddress,
+    abi: RoundManagerABI,
+    functionName: 'getActiveRound',
   })
 
   useEffect(() => {
@@ -57,12 +65,26 @@ export default function RoundPage() {
     return <div className="flex justify-center items-center min-h-screen">Round not found</div>
   }
 
-  console.log('Rendering WinnerPage with:', {
-    roundNumber: roundId,
-    userTeam: userBet ? userBet[1] : Team.None,
-    roundData: round
-  })
+  const roundStatus = Number(round[1])
+  const question = "Should AI assistants only communicate in pirate speak on International Talk Like a Pirate Day?" // TODO: Store questions on-chain or in a database
 
+  console.log('Round status:', roundStatus)
+
+  // If round is active or in evaluation, show FinalPage
+  if (roundStatus === RoundStatus.Active || roundStatus === RoundStatus.Evaluating) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <FinalPage
+          currentRound={roundId}
+          timeRemaining=""
+          onRoundComplete={() => {}}
+          question={question}
+        />
+      </div>
+    )
+  }
+
+  // If round is completed, show WinnerPage
   return (
     <div className="container mx-auto px-4 py-8">
       <WinnerPage
