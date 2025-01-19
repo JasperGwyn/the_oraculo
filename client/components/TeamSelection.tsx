@@ -1,17 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
 import { useEffect, useState } from 'react'
 import { modal } from '@/context'
-import { useReadContract } from 'wagmi'
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { formatEther } from 'viem'
 import { RoundStatus, Team } from '@/lib/types/contracts'
 
 export default function TeamSelection({ onParticipate }: { onParticipate: () => void }) {
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
 
   const { data: activeRound } = useReadContract({
     address: roundManagerAddress,
@@ -19,7 +18,19 @@ export default function TeamSelection({ onParticipate }: { onParticipate: () => 
     functionName: 'getActiveRound',
   })
 
+  // Get user bet for active round
+  const { data: userBet } = useReadContract({
+    address: roundManagerAddress,
+    abi: RoundManagerABI,
+    functionName: 'getUserBet',
+    args: activeRound && address ? [activeRound[0], address] : undefined,
+    query: {
+      enabled: !!activeRound && !!address,
+    }
+  })
+
   const isRoundActive = activeRound && Number(activeRound[0]) !== 0
+  const hasUserBet = userBet && Number(userBet[0]) > 0
 
   const handleClick = async () => {
     if (!isConnected) {
@@ -46,18 +57,28 @@ export default function TeamSelection({ onParticipate }: { onParticipate: () => 
           </div>
         ) : (
           <motion.button
-            whileHover={{ scale: isConnected ? 1.05 : 1 }}
-            whileTap={{ scale: isConnected ? 0.95 : 1 }}
+            whileHover={{ scale: isConnected && !hasUserBet ? 1.05 : 1 }}
+            whileTap={{ scale: isConnected && !hasUserBet ? 0.95 : 1 }}
             onClick={handleClick}
+            disabled={hasUserBet}
             className={`px-8 py-2 rounded-full text-lg font-bold
-              ${isConnected ? 'bg-white hover:bg-slate-50' : 'bg-gray-200'}
+              ${isConnected 
+                ? hasUserBet 
+                  ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                  : 'bg-white hover:bg-slate-50' 
+                : 'bg-gray-200'}
               border-2 border-white
               text-slate-700 shadow-lg
               hover:shadow-xl
               transition-all mb-4
               ${!isConnected && 'opacity-75'}`}
           >
-            {isConnected ? 'Participate' : 'Connect to Participate'}
+            {!isConnected 
+              ? 'Connect to Participate'
+              : hasUserBet
+                ? 'Waiting for Results...'
+                : 'Participate'
+            }
           </motion.button>
         )}
       </div>

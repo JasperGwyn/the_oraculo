@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useReadContract } from 'wagmi'
 import { modal } from '@/context'
@@ -17,6 +17,7 @@ import { roundManagerAddress } from '@/config/contracts'
 import { Team } from '@/lib/types/contracts'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import RoundHistory from './RoundHistory'
 
 export default function GameInterface() {
   const router = useRouter()
@@ -26,6 +27,12 @@ export default function GameInterface() {
   const [userMessage, setUserMessage] = useState('');
   const [userBet, setUserBet] = useState(0);
   const { isConnected } = useAccount()
+  const [showHistory, setShowHistory] = useState(false)
+
+  // Restore scroll position when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   // Get active round data
   const { data: activeRound } = useReadContract({
@@ -112,15 +119,26 @@ export default function GameInterface() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-6xl mx-auto"
     >
-      {/* Previous Rounds Quick Access */}
+      {/* Round History Quick Access */}
       <div className="mb-6 flex justify-end">
-        <Link
-          href="/rounds/1"
+        <button
+          onClick={() => setShowHistory(!showHistory)}
           className="px-4 py-2 bg-white/80 hover:bg-white text-slate-700 rounded-lg shadow transition-colors"
         >
-          View Round 1 Results
-        </Link>
+          {showHistory ? 'Hide History' : 'View Round History'}
+        </button>
       </div>
+
+      {/* Round History Panel */}
+      {showHistory && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <RoundHistory />
+        </motion.div>
+      )}
 
       <div className="relative">
         <div className="glass-card rounded-3xl p-6 sm:p-8">

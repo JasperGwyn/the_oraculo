@@ -310,4 +310,41 @@ contract RoundManager {
     function setDevelopmentMode(bool _isDevelopment) external onlyAuthorized {
         isDevelopment = _isDevelopment;
     }
+
+    function getUserRoundHistory(address user) public view returns (
+        uint256[] memory roundIds,
+        Team[] memory teams,
+        bool[] memory claimed,
+        uint256[] memory amounts
+    ) {
+        uint256 count = 0;
+        
+        // Primero contamos cuántas rondas tiene el usuario
+        for (uint256 i = 1; i <= lastRoundId; i++) {
+            if (rounds[i].userBets[user].amount > 0) {
+                count++;
+            }
+        }
+
+        // Inicializamos los arrays con el tamaño correcto
+        roundIds = new uint256[](count);
+        teams = new Team[](count);
+        claimed = new bool[](count);
+        amounts = new uint256[](count);
+
+        // Llenamos los arrays
+        uint256 index = 0;
+        for (uint256 i = 1; i <= lastRoundId; i++) {
+            Bet storage bet = rounds[i].userBets[user];
+            if (bet.amount > 0) {
+                roundIds[index] = i;
+                teams[index] = bet.team;
+                claimed[index] = bet.claimed;
+                amounts[index] = bet.amount;
+                index++;
+            }
+        }
+
+        return (roundIds, teams, claimed, amounts);
+    }
 }

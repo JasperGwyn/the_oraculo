@@ -1,11 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useAccount, useReadContract } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract } from 'wagmi'
 import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { formatEther } from 'viem'
 import { Team } from '@/lib/types/contracts'
+import { modeNetwork } from '@/config/chains'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface TeamData {
   name: 'YES' | 'NO'
@@ -24,6 +27,22 @@ export default function WinnerPage({
   userTeam,
 }: WinnerPageProps) {
   const { address } = useAccount()
+  const router = useRouter()
+
+  // Restore scroll position when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  const handleBack = () => {
+    console.log('Back clicked, current scroll:', window.scrollY)
+    window.scrollTo(0, 0)
+    console.log('After scroll reset in WinnerPage:', window.scrollY)
+    setTimeout(() => {
+      console.log('Before navigation, scroll:', window.scrollY)
+      router.back()
+    }, 0)
+  }
 
   // Get round data
   const { data: round, isLoading: isLoadingRound, error: roundError } = useReadContract({
@@ -63,6 +82,21 @@ export default function WinnerPage({
     functionName: 'getUserBet',
     args: [BigInt(roundNumber), address || '0x0000000000000000000000000000000000000000'],
   })
+
+  const { writeContract: claimRewards, isPending: isClaimLoading } = useWriteContract()
+
+  const handleClaimPrize = () => {
+    if (!address) return
+    
+    claimRewards({
+      address: roundManagerAddress,
+      abi: RoundManagerABI,
+      functionName: 'claimRewards',
+      args: [BigInt(roundNumber)],
+      chain: modeNetwork,
+      account: address
+    })
+  }
 
   console.log('WinnerPage data:', {
     round,
@@ -114,13 +148,39 @@ export default function WinnerPage({
     )
   }
 
+  // Check if round exists (id will be 0 if it doesn't exist)
+  if (Number(round[0]) === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-orange-600 mb-2">Round Not Found</h2>
+          <p className="text-gray-600">This round does not exist yet.</p>
+          <a href="/" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            Go to Current Round
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   // Check if round is still active or in evaluation
   const roundStatus = Number(round[1])
   if (roundStatus !== 2) { // 2 is Completed status
-    const statusMessage = roundStatus === 0 ? "Round Not Started" : "Round In Progress"
+    const hasUserBet = userBet && Number(userBet[0]) > 0
+    const userTeamName = hasUserBet ? (Number(userBet[1]) === Team.Yes ? 'YES' : 'NO') : null
+    const userBetAmount = hasUserBet ? Number(formatEther(userBet[0])) : null
+
+    const statusMessage = roundStatus === 0 
+      ? "Round In Progress"
+      : "Round Pending Results"
+    
     const statusDescription = roundStatus === 0 
-      ? "This round hasn't started yet."
-      : "This round is still in progress. Please wait until it's completed to see the results."
+      ? hasUserBet
+        ? `You have bet ${userBetAmount?.toFixed(6)} ETH on team ${userTeamName}. Results will be available once the round is completed.`
+        : "This round is currently active. Place your bets before it ends! You'll be able to see the results once the round is completed."
+      : hasUserBet
+        ? `You have bet ${userBetAmount?.toFixed(6)} ETH on team ${userTeamName}. Results are being processed, check back soon!`
+        : "This round has ended and results are being processed. Check back soon to see who won!"
 
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
@@ -212,15 +272,46 @@ export default function WinnerPage({
 
         {/* User Results */}
         <div className={`rounded-xl p-6 shadow-lg ${
-          isUserWinner ? 'bg-green-50' : 'bg-red-50'
+          userWinnings ? (isUserWinner ? 'bg-green-50' : 'bg-red-50') : 'bg-gray-50'
         }`}>
           <h2 className="text-xl font-semibold mb-4 text-black">Your Results</h2>
           <div className="space-y-2 text-black">
-            <p>Your Team: {userTeam === Team.Yes ? 'YES' : 'NO'}</p>
-            <p>Status: {isUserWinner ? 'Winner! 🎉' : 'Better luck next time'}</p>
-            {userWinnings && (
-              <p className="text-lg font-semibold">
-                Your Winnings: {userWinnings.toFixed(6)} ETH
+            {userWinnings ? (
+              <>
+                <p>Your Team: {userTeam === Team.Yes ? 'YES' : 'NO'}</p>
+                <p>Status: {isUserWinner ? 'Winner! 🎉' : 'Better luck next time'}</p>
+                <p className="text-lg font-semibold">
+                  Your Bet: {userWinnings.toFixed(6)} ETH
+                </p>
+                {isUserWinner ? (
+                  <>
+                    {userBet?.[2] ? (
+                      <p className="mt-4 text-green-600 font-semibold">
+                        Rewards already claimed! ✅
+                      </p>
+                    ) : (
+                      <button
+                        onClick={handleClaimPrize}
+                        disabled={isClaimLoading}
+                        className={`mt-4 w-full py-2 px-4 rounded-lg text-white font-semibold
+                          ${isClaimLoading 
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-green-500 hover:bg-green-600'
+                          }`}
+                      >
+                        {isClaimLoading ? 'Claiming...' : 'Claim Prize'}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-4 text-red-600 font-semibold">
+                    No rewards available - Team {winningTeamName} won this round ❌
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-600 font-semibold">
+                You did not participate in this round 🤔
               </p>
             )}
           </div>
@@ -297,10 +388,11 @@ export default function WinnerPage({
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={handleBack}
           className="px-8 py-3 bg-blue-500 text-white rounded-full font-semibold
             shadow-lg hover:bg-blue-600 transition-colors"
         >
-          Join Next Round
+          Back
         </motion.button>
       </div>
     </motion.div>

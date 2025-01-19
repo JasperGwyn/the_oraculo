@@ -186,3 +186,39 @@ La solución funciona porque:
 - Considerar crear un script para generar el ABI automáticamente desde el contrato
 - Evaluar si se necesitan tipos más específicos para ciertos parámetros
 - Mantener sincronizado el ABI con cualquier cambio en el contrato
+
+## 2024-01-04 11:30
+
+### Objetivo de la sesión
+Resolver el problema de restauración automática del scroll en la navegación entre páginas, específicamente cuando se vuelve a la página principal desde una página de detalle de ronda.
+
+### Desafíos encontrados
+- Al volver a la página principal, el scroll se restauraba a la posición anterior
+- El comportamiento persistía incluso después de intentar resetear el scroll manualmente con `window.scrollTo(0, 0)`
+- El problema ocurría tanto en navegación normal como al recargar la página (F5)
+
+### Solución propuesta y pasos
+1. Identificar que el problema era causado por el comportamiento por defecto del navegador de restaurar la posición del scroll
+2. Modificar el componente principal (`page.tsx`) para desactivar la restauración automática:
+   ```typescript
+   useEffect(() => {
+     // Disable scroll restoration
+     if ('scrollRestoration' in history) {
+       history.scrollRestoration = 'manual'
+     }
+     
+     window.scrollTo(0, 0)
+   }, [])
+   ```
+
+### Razón o explicación
+La solución funciona porque:
+1. `history.scrollRestoration = 'manual'` desactiva el comportamiento automático del navegador de restaurar la posición del scroll
+2. Al establecerlo en 'manual', tenemos control total sobre la posición del scroll
+3. El `useEffect` asegura que esto se aplique cada vez que se monta el componente
+4. `window.scrollTo(0, 0)` ahora funciona efectivamente ya que el navegador no sobrescribe la posición
+
+### Próximos pasos / Reflexiones
+- Considerar si este comportamiento debería aplicarse a otras páginas de la aplicación
+- Documentar esta solución en la guía de desarrollo para futuros casos similares
+- Evaluar si hay casos específicos donde querríamos mantener la posición del scroll

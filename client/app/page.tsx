@@ -1,4 +1,6 @@
-import { Suspense } from 'react'
+'use client'
+
+import { Suspense, useEffect } from 'react'
 import GameInterface from '@/components/GameInterface'
 import Loading from '@/components/Loading'
 import Background from '@/components/Background'
@@ -6,6 +8,18 @@ import Image from 'next/image'
 import ConnectButton from '@/components/AuthButton'
 
 export default function Home() {
+  useEffect(() => {
+    console.log('Home page mounted, initial scroll:', window.scrollY)
+    
+    // Disable scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+    }
+    
+    window.scrollTo(0, 0)
+    console.log('After scroll reset:', window.scrollY)
+  }, [])
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#a8d5d0] to-[#d5f2ef] overflow-hidden relative">
       <div className="absolute top-4 right-4 z-20">
