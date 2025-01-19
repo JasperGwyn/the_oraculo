@@ -1,4 +1,6 @@
 packages:
   - 'packages/contracts'
-  - 'packages/theoraculo'
+  - 'packages/backend'
+  - 'packages/eliza'
+  - 'packages/shared'
   - 'client'

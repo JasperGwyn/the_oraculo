@@ -12,8 +12,7 @@ export const RoundManagerABI = [
         { internalType: 'uint256', name: 'endTime', type: 'uint256' },
         { internalType: 'uint256', name: 'totalStaked', type: 'uint256' },
         { internalType: 'uint8', name: 'winningTeam', type: 'uint8' },
-        { internalType: 'uint256', name: 'platformFee', type: 'uint256' },
-        { internalType: 'uint8', name: 'distributionType', type: 'uint8' }
+        { internalType: 'uint256', name: 'platformFee', type: 'uint256' }
       ],
     },
     {
@@ -30,8 +29,7 @@ export const RoundManagerABI = [
         { internalType: 'uint256', name: 'endTime', type: 'uint256' },
         { internalType: 'uint256', name: 'totalStaked', type: 'uint256' },
         { internalType: 'uint8', name: 'winningTeam', type: 'uint8' },
-        { internalType: 'uint256', name: 'platformFee', type: 'uint256' },
-        { internalType: 'uint8', name: 'distributionType', type: 'uint8' }
+        { internalType: 'uint256', name: 'platformFee', type: 'uint256' }
       ],
     },
     {
@@ -70,18 +68,6 @@ export const RoundManagerABI = [
       ],
     },
     {
-      name: 'getTeamParticipants',
-      type: 'function',
-      stateMutability: 'view',
-      inputs: [
-        { internalType: 'uint256', name: 'roundId', type: 'uint256' },
-        { internalType: 'uint8', name: 'team', type: 'uint8' }
-      ],
-      outputs: [
-        { internalType: 'uint256', name: '', type: 'uint256' }
-      ],
-    },
-    {
       name: 'getParticipants',
       type: 'function',
       stateMutability: 'view',
@@ -105,6 +91,69 @@ export const RoundManagerABI = [
         { internalType: 'uint8', name: 'team', type: 'uint8' },
         { internalType: 'bool', name: 'claimed', type: 'bool' }
       ],
+    },
+    {
+      name: 'getAllTeamParticipants',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [
+        { internalType: 'uint256', name: 'roundId', type: 'uint256' }
+      ],
+      outputs: [
+        { internalType: 'uint256', name: 'noneCount', type: 'uint256' },
+        { internalType: 'uint256', name: 'yesCount', type: 'uint256' },
+        { internalType: 'uint256', name: 'noCount', type: 'uint256' }
+      ],
+    },
+    {
+      name: 'getUserRoundHistory',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [
+        { internalType: 'address', name: 'user', type: 'address' }
+      ],
+      outputs: [
+        { internalType: 'uint256[]', name: 'roundIds', type: 'uint256[]' },
+        { internalType: 'enum RoundManager.Team[]', name: 'teams', type: 'uint8[]' },
+        { internalType: 'bool[]', name: 'claimed', type: 'bool[]' },
+        { internalType: 'uint256[]', name: 'amounts', type: 'uint256[]' }
+      ],
+    },
+    {
+      name: 'isDevelopment',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [
+        { internalType: 'bool', name: '', type: 'bool' }
+      ],
+    },
+    {
+      name: 'lastRoundId',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [
+        { internalType: 'uint256', name: '', type: 'uint256' }
+      ],
+    },
+    {
+      name: 'getActiveRoundId',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [
+        { internalType: 'uint256', name: '', type: 'uint256' }
+      ],
+    },
+    {
+      name: 'setDevelopmentMode',
+      type: 'function',
+      stateMutability: 'nonpayable',
+      inputs: [
+        { internalType: 'bool', name: '_isDevelopment', type: 'bool' }
+      ],
+      outputs: [],
     },
 
     // Write functions
@@ -132,9 +181,7 @@ export const RoundManagerABI = [
       type: 'function',
       stateMutability: 'nonpayable',
       inputs: [
-        { internalType: 'uint256', name: 'roundId', type: 'uint256' },
-        { internalType: 'uint256', name: 'duration', type: 'uint256' },
-        { internalType: 'uint8', name: 'distributionType', type: 'uint8' }
+        { internalType: 'uint256', name: 'duration', type: 'uint256' }
       ],
       outputs: [],
     },
@@ -145,6 +192,16 @@ export const RoundManagerABI = [
       inputs: [
         { internalType: 'uint256', name: 'roundId', type: 'uint256' },
         { internalType: 'uint8', name: 'winningTeam', type: 'uint8' }
+      ],
+      outputs: [],
+    },
+    {
+      name: 'setRoundStatus',
+      type: 'function',
+      stateMutability: 'nonpayable',
+      inputs: [
+        { internalType: 'uint256', name: 'roundId', type: 'uint256' },
+        { internalType: 'uint8', name: 'newStatus', type: 'uint8' }
       ],
       outputs: [],
     },
@@ -164,8 +221,15 @@ export const RoundManagerABI = [
       name: 'RoundCreated',
       inputs: [
         { indexed: false, internalType: 'uint256', name: 'roundId', type: 'uint256' },
-        { indexed: false, internalType: 'uint256', name: 'startTime', type: 'uint256' },
-        { indexed: false, internalType: 'uint8', name: 'distributionType', type: 'uint8' }
+        { indexed: false, internalType: 'uint256', name: 'startTime', type: 'uint256' }
+      ],
+    },
+    {
+      type: 'event',
+      name: 'RoundStatusChanged',
+      inputs: [
+        { indexed: false, internalType: 'uint256', name: 'roundId', type: 'uint256' },
+        { indexed: false, internalType: 'uint8', name: 'newStatus', type: 'uint8' }
       ],
     },
     {

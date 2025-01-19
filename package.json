@@ -2,7 +2,7 @@
     "name": "the_oraculo",
     "private": true,
     "scripts": {
-        "build": "turbo run build",
+        "build": "pnpm -r --filter \"@theoraculo/shared\" --filter \"@theoraculo/contracts\" --filter \"@theoraculo/backend\" --filter \"client\" build",
         "dev": "turbo run dev",
         "lint": "turbo run lint",
         "clean": "turbo run clean"

@@ -1,21 +1,23 @@
 {
   "name": "@theoraculo/contracts",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Smart contract artifacts for The Oraculo",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test",
-    "deploy": "hardhat run scripts/deploy.ts --network mode"
+    "build": "tsc && ts-node scripts/copyAbi.ts",
+    "dev": "tsc -w",
+    "clean": "rimraf dist"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@types/node": "^22.10.2",
-    "dotenv": "^16.4.7",
-    "hardhat": "^2.22.17",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
-  },
-  "dependencies": {
-    "ethers": "^6.13.4"
+    "@nomicfoundation/hardhat-viem": "^2.0.6",
+    "hardhat": "^2.22.18",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1"
   }
 }
