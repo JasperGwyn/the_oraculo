@@ -22,10 +22,9 @@ export interface RoundResult {
  * Configuration for the backend service
  */
 export interface BackendConfig {
-  roundDuration: number           // Default duration for rounds in seconds
-  evaluationDuration: number      // How long to spend evaluating in seconds
-  defaultPlatformFee: bigint      // Default fee to take from pools
-  minParticipants: number        // Minimum participants needed for a valid round
-  privateKey: string             // Private key for the backend wallet
-  rpcUrl: string                // RPC URL for the blockchain connection
+  privateKey: string
+  rpcUrl: string
+  roundDuration: number
+  evaluationDuration: number
+  minParticipants: number
 } 

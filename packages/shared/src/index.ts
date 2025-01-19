@@ -5,4 +5,7 @@ export * from './config/chains'
 export * from './types/RoundTypes'
 
 // Export contract addresses
-export * from './contracts/addresses' 
+export * from './contracts/addresses'
+
+// Export backend types
+export * from './types/backend' 

@@ -1,8 +1,14 @@
-import { ethers, run } from "hardhat";
+import { run } from "hardhat";
+import { getContractFactory } from "@nomicfoundation/hardhat-ethers/types";
 import * as fs from 'fs';
 import * as path from 'path';
 
-async function updateContractAddresses(newAddress: string) {
+async function updateAddresses(newAddress: string) {
+  // Actualizar addresses.ts
+  const addressesPath = path.join(__dirname, '../../shared/src/contracts/addresses.ts');
+  const addressesContent = `export const roundManagerAddress = '${newAddress}' as const`;
+  fs.writeFileSync(addressesPath, addressesContent);
+  
   // Actualizar .env.local
   const envPath = path.join(__dirname, '../../../client/.env.local');
   let envContent = fs.readFileSync(envPath, 'utf8');
@@ -16,16 +22,6 @@ async function updateContractAddresses(newAddress: string) {
     envContent += `\nNEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress}`;
   }
   fs.writeFileSync(envPath, envContent);
-
-  // Actualizar addresses.ts
-  const addressesPath = path.join(__dirname, '../../shared/src/contracts/addresses.ts');
-  const addressesContent = `export const contractAddresses = {
-  ROUNDMANAGER_ADDRESS: '${newAddress}' as const,
-} as const
-
-export type ContractAddresses = typeof contractAddresses`;
-
-  fs.writeFileSync(addressesPath, addressesContent);
   
   console.log(`Updated contract addresses in .env.local and addresses.ts`);
 }
@@ -33,7 +29,7 @@ export type ContractAddresses = typeof contractAddresses`;
 async function main() {
   console.log("Deploying RoundManager...");
 
-  const RoundManager = await ethers.getContractFactory("RoundManager");
+  const RoundManager = await getContractFactory("RoundManager");
   const roundManager = await RoundManager.deploy();
 
   await roundManager.waitForDeployment();
@@ -41,8 +37,8 @@ async function main() {
   const contractAddress = await roundManager.getAddress();
   console.log(`RoundManager deployed to ${contractAddress}`);
 
-  // Actualizar .env.local
-  await updateContractAddresses(contractAddress);
+  // Actualizar archivos con la nueva dirección
+  await updateAddresses(contractAddress);
 
   // Esperar unos bloques antes de verificar
   console.log("Esperando unos bloques antes de verificar...");
