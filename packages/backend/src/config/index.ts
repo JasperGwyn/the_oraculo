@@ -1,17 +1,15 @@
 import { config } from 'dotenv'
 import { BackendConfig } from '@theoraculo/shared'
+import * as path from 'path'
 
-// Load environment variables
-config()
+// Load environment variables from root .env
+config({ path: path.join(__dirname, '../../../../.env') })
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'PRIVATE_KEY',
-  'RPC_URL',
-  'ROUND_DURATION',
-  'EVALUATION_DURATION',
-  'MIN_PARTICIPANTS',
-  'PLATFORM_FEE'
+  'MODE_PRIVATE_KEY',
+  'MODE_NETWORK_URL',
+  'ROUNDMANAGER_ADDRESS'
 ]
 
 for (const envVar of requiredEnvVars) {
@@ -22,15 +20,8 @@ for (const envVar of requiredEnvVars) {
 
 // Create and export the configuration
 export const backendConfig: BackendConfig = {
-  roundDuration: Number(process.env.ROUND_DURATION),
-  evaluationDuration: Number(process.env.EVALUATION_DURATION),
-  defaultPlatformFee: BigInt(process.env.PLATFORM_FEE!),
-  minParticipants: Number(process.env.MIN_PARTICIPANTS),
-  privateKey: process.env.PRIVATE_KEY!,
-  rpcUrl: process.env.RPC_URL!
-}
-
-// Export contract addresses
-export const contractAddresses = {
-  roundManager: '0x...' // TODO: Add your contract address here
+  roundDuration: 300,     // 5 minutos
+  evaluationDuration: 60, // 1 minuto
+  privateKey: process.env.MODE_PRIVATE_KEY!,
+  rpcUrl: process.env.MODE_NETWORK_URL!
 } 

@@ -1,9 +1,7 @@
 export enum RoundStatus {
-  None = 0,
-  Active = 1,
-  Evaluating = 2,
-  Completed = 3,
-  Cancelled = 4
+  Active = 0,
+  Evaluating = 1,
+  Completed = 2
 }
 
 export enum Team {

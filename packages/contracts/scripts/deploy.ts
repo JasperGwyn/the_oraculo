@@ -4,26 +4,35 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function updateAddresses(newAddress: string) {
-  // Actualizar addresses.ts
-  const addressesPath = path.join(__dirname, '../../shared/src/contracts/addresses.ts');
-  const addressesContent = `export const roundManagerAddress = '${newAddress}' as const`;
-  fs.writeFileSync(addressesPath, addressesContent);
-  
-  // Actualizar .env.local
-  const envPath = path.join(__dirname, '../../../client/.env.local');
+  // Actualizar .env
+  const envPath = path.join(__dirname, '../../../.env');
   let envContent = fs.readFileSync(envPath, 'utf8');
-  const addressRegex = /^NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=.+$/m;
+  const addressRegex = /^ROUNDMANAGER_ADDRESS=.+$/m;
   const currentLine = envContent.match(addressRegex)?.[0];
   
   if (currentLine) {
-    const newLine = `NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress} #nuevo ${currentLine.split('=')[1]}`;
+    const newLine = `ROUNDMANAGER_ADDRESS=${newAddress} #nuevo ${currentLine.split('=')[1]}`;
     envContent = envContent.replace(addressRegex, newLine);
   } else {
-    envContent += `\nNEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress}`;
+    envContent += `\nROUNDMANAGER_ADDRESS=${newAddress}`;
   }
   fs.writeFileSync(envPath, envContent);
   
-  console.log(`Updated contract addresses in .env.local and addresses.ts`);
+  // Actualizar .env.local
+  const envLocalPath = path.join(__dirname, '../../../client/.env.local');
+  let envLocalContent = fs.readFileSync(envLocalPath, 'utf8');
+  const localAddressRegex = /^NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=.+$/m;
+  const currentLocalLine = envLocalContent.match(localAddressRegex)?.[0];
+  
+  if (currentLocalLine) {
+    const newLocalLine = `NEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress} #nuevo ${currentLocalLine.split('=')[1]}`;
+    envLocalContent = envLocalContent.replace(localAddressRegex, newLocalLine);
+  } else {
+    envLocalContent += `\nNEXT_PUBLIC_ROUNDMANAGER_ADDRESS=${newAddress}`;
+  }
+  fs.writeFileSync(envLocalPath, envLocalContent);
+  
+  console.log(`Updated contract addresses in .env and .env.local`);
 }
 
 async function main() {

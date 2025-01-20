@@ -1,4 +1,4 @@
-export const roundManagerAddress = '0x593CA3267261F13ba429a18cc0caF09A1c261690' as const
+export const roundManagerAddress = process.env.ROUNDMANAGER_ADDRESS as `0x${string}`
 
 export const contractAddresses = {
   roundManager: roundManagerAddress,

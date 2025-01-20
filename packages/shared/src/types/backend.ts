@@ -22,9 +22,8 @@ export interface RoundResult {
  * Configuration for the backend service
  */
 export interface BackendConfig {
-  privateKey: string
-  rpcUrl: string
-  roundDuration: number
-  evaluationDuration: number
-  minParticipants: number
+  roundDuration: number        // Duración de la ronda en segundos
+  evaluationDuration: number   // Duración de la evaluación en segundos
+  privateKey: string          // Private key para el procesador
+  rpcUrl: string             // URL del RPC de Mode
 } 
