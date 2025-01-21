@@ -8,19 +8,21 @@ import { RoundManagerABI } from '@/config/abis/RoundManager'
 import { roundManagerAddress } from '@/config/contracts'
 import { formatEther } from 'viem'
 import { RoundStatus, Team } from '@/lib/types/contracts'
+import { useSocketContext } from '@/components/SocketProvider'
 
 export default function TeamSelection({ onParticipate }: { onParticipate: () => void }) {
   const { isConnected, address } = useAccount()
   const [timeRemaining, setTimeRemaining] = useState<string>('Calculating...')
+  const { currentRound } = useSocketContext()
 
-  const { data: activeRound } = useReadContract({
+  const { data: activeRound, refetch: refetchActiveRound } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getActiveRound',
   })
 
   // Get user bet for active round
-  const { data: userBet } = useReadContract({
+  const { data: userBet, refetch: refetchUserBet } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getUserBet',
@@ -31,14 +33,14 @@ export default function TeamSelection({ onParticipate }: { onParticipate: () => 
   })
 
   // Get team stakes
-  const { data: yesTeamStakes } = useReadContract({
+  const { data: yesTeamStakes, refetch: refetchYesStakes } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getTeamStakes',
     args: activeRound ? [activeRound[0], Team.Yes] : undefined,
   })
 
-  const { data: noTeamStakes } = useReadContract({
+  const { data: noTeamStakes, refetch: refetchNoStakes } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getTeamStakes',
@@ -46,7 +48,7 @@ export default function TeamSelection({ onParticipate }: { onParticipate: () => 
   })
 
   // Get team participants count
-  const { data: teamParticipants } = useReadContract({
+  const { data: teamParticipants, refetch: refetchParticipants } = useReadContract({
     address: roundManagerAddress,
     abi: RoundManagerABI,
     functionName: 'getAllTeamParticipants',
@@ -77,6 +79,18 @@ export default function TeamSelection({ onParticipate }: { onParticipate: () => 
 
     return () => clearInterval(timer)
   }, [activeRound])
+
+  // Effect to refetch data when a new round is created
+  useEffect(() => {
+    if (currentRound) {
+      console.log('Refetching contract data due to round update')
+      refetchActiveRound()
+      refetchUserBet()
+      refetchYesStakes()
+      refetchNoStakes()
+      refetchParticipants()
+    }
+  }, [currentRound?.roundId]) // Solo re-ejecutar cuando cambia el ID de la ronda
 
   const isRoundActive = activeRound && Number(activeRound[0]) !== 0
   const hasUserBet = userBet && Number(userBet[0]) > 0

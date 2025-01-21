@@ -26,4 +26,5 @@ export interface BackendConfig {
   evaluationDuration: number   // Duración de la evaluación en segundos
   privateKey: string          // Private key para el procesador
   rpcUrl: string             // URL del RPC de Mode
+  clientUrl?: string         // URL del cliente frontend
 } 

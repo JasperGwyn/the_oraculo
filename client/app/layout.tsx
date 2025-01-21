@@ -5,6 +5,7 @@ import localFont from 'next/font/local'
 import { headers } from 'next/headers'
 import ContextProvider from '@/context'
 import { WagmiProvider } from '@/providers/WagmiProvider'
+import { SocketProvider } from '@/components/SocketProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,7 +26,11 @@ export default async function RootLayout({
     <html lang="en" className={fredoka.variable}>
       <body className={`${fredoka.className} ${inter.className}`}>
         <WagmiProvider>
-          <ContextProvider cookies={cookies}>{children}</ContextProvider>
+          <ContextProvider cookies={cookies}>
+            <SocketProvider>
+              {children}
+            </SocketProvider>
+          </ContextProvider>
         </WagmiProvider>
       </body>
     </html>

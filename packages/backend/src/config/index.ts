@@ -23,5 +23,6 @@ export const backendConfig: BackendConfig = {
   roundDuration: 300,     // 5 minutos
   evaluationDuration: 60, // 1 minuto
   privateKey: process.env.MODE_PRIVATE_KEY!,
-  rpcUrl: process.env.MODE_NETWORK_URL!
+  rpcUrl: process.env.MODE_NETWORK_URL!,
+  clientUrl: process.env.CLIENT_URL
 } 

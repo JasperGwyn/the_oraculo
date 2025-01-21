@@ -22,6 +22,7 @@
     "@reown/appkit-adapter-wagmi": "^1.6.2",
     "@reown/walletkit": "^1.1.2",
     "@tanstack/react-query": "^5.62.10",
+    "@theoraculo/contracts": "workspace:*",
     "@walletconnect/core": "^2.17.3",
     "@walletconnect/ethereum-provider": "^2.17.3",
     "@walletconnect/react-native-compat": "^2.17.3",
@@ -37,10 +38,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-native-get-random-values": "^1.11.0",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.5.5",
     "viem": "^2.21.57",
-    "wagmi": "^2.14.6",
-    "@theoraculo/contracts": "workspace:*"
+    "wagmi": "^2.14.6"
   },
   "devDependencies": {
     "@walletconnect/jsonrpc-types": "^1.0.4",

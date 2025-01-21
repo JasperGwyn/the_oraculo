@@ -12,6 +12,7 @@ import { modeNetwork, Round, RoundStatus, Team, roundManagerAddress } from '@the
 import { RoundManagerABI } from '@theoraculo/contracts'
 import { backendConfig } from '../config'
 import { BaseError } from 'viem'
+import { Server } from 'socket.io'
 
 export class RoundManagerService {
   private publicClient: PublicClient
@@ -19,6 +20,7 @@ export class RoundManagerService {
   private account: Account
   private isRunning: boolean = false
   private contractAddress: `0x${string}`
+  private io: Server
 
   // Definimos los estados como bigint
   private readonly ROUND_STATUS = {
@@ -27,7 +29,8 @@ export class RoundManagerService {
     COMPLETED: 2n
   } as const
 
-  constructor() {
+  constructor(io: Server) {
+    this.io = io
     this.account = privateKeyToAccount(backendConfig.privateKey as `0x${string}`)
     this.contractAddress = process.env.ROUNDMANAGER_ADDRESS as `0x${string}`
     
@@ -167,7 +170,10 @@ export class RoundManagerService {
     if (BigInt(lastRound[1]) === this.ROUND_STATUS.COMPLETED) {
       console.log(`\n🆕 Creating new round with duration: ${backendConfig.roundDuration} seconds...`)
       try {
-        await this.createRound()
+        const tx = await this.createRound()
+        // Emitir evento de nueva ronda
+        const newRoundId = lastRoundId + 1n
+        this.io.emit('newRound', { roundId: newRoundId.toString() })
       } catch (error) {
         if (error instanceof BaseError) {
           console.error('❌ Error creating round:', error.shortMessage)
@@ -176,6 +182,17 @@ export class RoundManagerService {
         }
       }
     }
+
+    // Emitir estado actual de la ronda
+    this.io.emit('roundUpdate', {
+      roundId: lastRoundId.toString(),
+      status: Number(lastRound[1]),
+      endTime: Number(lastRound[3]),
+      yesTeamStakes: yesTeamStakes.toString(),
+      noTeamStakes: noTeamStakes.toString(),
+      yesPlayers: Number(participants[1]),
+      noPlayers: Number(participants[2])
+    })
   }
 
   public async getActiveRound(): Promise<Round | null> {
@@ -233,6 +250,52 @@ export class RoundManagerService {
       args: [roundId, winningTeam],
       chain: null,
       account: this.account
+    })
+  }
+
+  public async emitCurrentState() {
+    const lastRoundId = await this.publicClient.readContract({
+      address: this.contractAddress,
+      abi: RoundManagerABI,
+      functionName: 'lastRoundId'
+    })
+
+    const round = await this.publicClient.readContract({
+      address: this.contractAddress,
+      abi: RoundManagerABI,
+      functionName: 'rounds',
+      args: [lastRoundId]
+    })
+
+    const participants = await this.publicClient.readContract({
+      address: this.contractAddress,
+      abi: RoundManagerABI,
+      functionName: 'getAllTeamParticipants',
+      args: [lastRoundId]
+    })
+
+    const yesTeamStakes = await this.publicClient.readContract({
+      address: this.contractAddress,
+      abi: RoundManagerABI,
+      functionName: 'getTeamStakes',
+      args: [lastRoundId, Team.Yes]
+    })
+
+    const noTeamStakes = await this.publicClient.readContract({
+      address: this.contractAddress,
+      abi: RoundManagerABI,
+      functionName: 'getTeamStakes',
+      args: [lastRoundId, Team.No]
+    })
+
+    this.io.emit('roundUpdate', {
+      roundId: lastRoundId.toString(),
+      status: Number(round[1]),
+      endTime: Number(round[3]),
+      yesTeamStakes: yesTeamStakes.toString(),
+      noTeamStakes: noTeamStakes.toString(),
+      yesPlayers: Number(participants[1]),
+      noPlayers: Number(participants[2])
     })
   }
 } 
