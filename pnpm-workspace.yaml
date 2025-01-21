@@ -1,6 +1,6 @@
 packages:
   - 'packages/contracts'
   - 'packages/backend'
-  - 'packages/eliza'
   - 'packages/shared'
+  - 'packages/eliza'
   - 'client'
