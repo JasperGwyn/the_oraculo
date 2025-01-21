@@ -166,8 +166,14 @@ export class RoundManagerService {
       return
     }
 
-    // 3. Solo crear nueva ronda si la última está completada
+    // 3. Solo crear nueva ronda si la última está completada y hay clientes conectados
     if (BigInt(lastRound[1]) === this.ROUND_STATUS.COMPLETED) {
+      // Verificar si hay clientes conectados
+      if (this.io.engine.clientsCount === 0) {
+        console.log('\n⏸️ Round completed but no clients connected. Waiting for clients...')
+        return
+      }
+
       console.log(`\n🆕 Creating new round with duration: ${backendConfig.roundDuration} seconds...`)
       try {
         const tx = await this.createRound()

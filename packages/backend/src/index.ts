@@ -32,11 +32,17 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('Client disconnected')
-    // Stop service if no clients are connected
+    // Solo detener el servicio si no hay clientes y no hay una ronda activa
     if (io.engine.clientsCount === 0) {
-      service.stop()
+      const activeRound = await service.getActiveRound()
+      if (!activeRound) {
+        console.log('No active round, stopping service...')
+        service.stop()
+      } else {
+        console.log('Active round detected, service will continue running...')
+      }
     }
   })
 })
